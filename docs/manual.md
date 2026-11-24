@@ -156,3 +156,27 @@ Do not reintroduce a permanent-branch `verify -> publish-build -> dispatch-pages
 Pages is separate from CAD CI. Hugo consumes `models/` metadata and the corresponding durable build scope. Examples and Verification are purpose-driven public views. Owners with both purposes appear in both views without duplicating physical ownership or generated artifacts. When implementation results contain named `verification_stages`, Pages renders each stage status and links the stage-local durable report. Legacy/single-stage results remain supported through the aggregate verification status and compatibility report link.
 
 Stable content is published at `/` and development content at `/dev/`.
+
+## Releases
+
+A release is an explicit repository-owner action and never follows
+automatically from normal CI.
+
+The stable source commit must already have a successful full `build/main`
+scope. Its `build-plan.json` must record `library: true`, select every active
+model owner, and all durable owner results must pass at the same source SHA.
+
+The thin `.github/workflows/release.yml` adapter checks that evidence and then
+delegates publication to released `tool.py.lib.ci v0.2.1`. Package-specific
+validation lives in `cadlib/release.py`; the template default checks the
+package version and writes release notes.
+
+Publication is requested on a normal issue with:
+
+```text
+/release vX.Y.Z <exact-40-character-main-sha>
+```
+
+Pages is not consulted and is not release evidence. The release adapter must
+not reimplement tag creation, GitHub Release creation, stable-head checks or
+idempotent publication.
