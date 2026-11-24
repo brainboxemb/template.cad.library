@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/25-multi-stage-verification
-modules: [ci, verification]
+branch: issue/29-page-verification-stages
+modules: [pages]
 library: false
-models: [simple-box]
+models: []
 tasks: [test]
