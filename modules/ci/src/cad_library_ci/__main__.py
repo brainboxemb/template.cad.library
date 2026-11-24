@@ -11,7 +11,7 @@ from .history import changed_paths, last_successful_dev_sha
 from .items import discover_modules, select
 from .library import library_owner, build_wheel
 from .models import discover_models, select_models
-from .runner import execute
+from .runner import execute, execute_model_tests
 from .selection import changed_selection
 
 
@@ -91,6 +91,7 @@ def main():
             library=plan.library,
         )
     print("Selected models:", ", ".join(model.id for model in selected), flush=True)
+    execute_model_tests(selected, library)
 
     output = repo / project.output_root / "qualification"
     output.mkdir(parents=True, exist_ok=True)

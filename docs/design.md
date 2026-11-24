@@ -87,6 +87,10 @@ The owner is selected once; CI expands declared implementations and applicable v
 
 The legacy single `verification:` mapping remains supported and maps to one STL verification stage.
 
+## Model-local source contracts
+
+A physical owner may contain `tests/` for source/compiler semantics that are specific to that model. CI runs those tests only when the owner is selected. They receive `cadlib/src` on `PYTHONPATH` but do not trigger installation of reference CAD engines. This keeps compiler command contracts with the model that owns them while geometry/native checks remain verification stages.
+
 ## Capability boundaries
 
 CI decides **what owners and runtime roles** run. Builders decide **how one implementation** becomes CAD artifacts. Verifier capabilities map adapters to runtime-local entrypoints. Verification stages apply generated artifacts to owner-local expectations. Preview renders already-built verified geometry. Pages consumes durable evidence only.

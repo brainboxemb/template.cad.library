@@ -102,6 +102,14 @@ models/<owner>/<implementation>/verification/<stage>/
 
 A later stage never overwrites earlier evidence. Implementation status passes only if its build, all applicable stages and configured preview pass.
 
+## Owner-local contract tests
+
+A selected model may own optional Python source/compiler tests below `models/<owner>/tests/`. These tests run iff that physical owner is selected, including full promotion runs and incremental dependency selection.
+
+They run directly from source with `unittest`. The consumer library source (`cadlib/src`) and the model root are added to `PYTHONPATH`; reference CAD engines are not installed merely for these tests. Use this for compiler/command contracts that belong to the physical model rather than to `cadlib` or built-artifact verification.
+
+A model without `tests/` remains valid. Built geometry/native evidence continues to belong to the normal verification stages.
+
 ## Dependencies
 
 `dependencies` contains physical model owner ids. A selected dependency selects all downstream consumers transitively. This intentionally matches `template.cad.model-project`.
