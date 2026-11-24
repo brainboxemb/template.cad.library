@@ -6,8 +6,8 @@ Temporary branches are based on `dev`; squash them into `dev`. Promote `dev` to 
 
 ```yaml
 schema: 1
-branch: issue/23-model-owners
-modules: [ci]
+branch: issue/25-multi-stage-verification
+modules: [ci, verification]
 library: false
 models: [simple-box]
 tasks: [test]
@@ -55,12 +55,6 @@ implementations:
   - id: build123d
     builder: builder-build123d
     source: build123d/model.py
-  - id: pythonscad
-    builder: builder-pythonscad
-    source: pythonscad/model.py
-  - id: pybosl2
-    builder: builder-pybosl2
-    source: pybosl2/model.py
   - id: solidcraft
     builder: builder-solidcraft
     source: solidcraft/commands.json
@@ -69,31 +63,67 @@ implementations:
 
 CI selects the owner once and expands all implementations. Builder module changes also select every owner that uses that builder.
 
+## Verification stages
+
+A model can declare one or more named verification stages. The verifier module owns adapter-to-runtime mapping; the model only selects the adapter, definition, generated artifact and optional implementation filter.
+
+```yaml
+verifications:
+  - id: native
+    module: verification
+    adapter: solidcraft-model
+    definition: verification/solidcraft.py
+    artifact: model.sc
+    implementations: [solidcraft]
+
+  - id: geometry
+    module: verification
+    adapter: mesh-geometry
+    definition: verification/geometry.json
+    artifact: model.stl
+```
+
+The current local verification module declares:
+
+- `solidcraft-model` -> `solidcraft`;
+- `mesh-geometry` -> `reference`.
+
+A stage without `implementations` applies to every implementation. Each implementation must have at least one applicable stage.
+
+For compatibility, the previous single `verification:` mapping is still accepted and becomes one `model.stl` verification stage.
+
+Stage evidence is retained independently below:
+
+```text
+models/<owner>/<implementation>/verification/<stage>/
+  verification.json
+  stage-result.json
+```
+
+A later stage never overwrites earlier evidence. Implementation status passes only if its build, all applicable stages and configured preview pass.
+
 ## Dependencies
 
-`dependencies` contains physical model owner ids. A selected dependency selects all downstream consumers transitively. This is intentionally the same model as `template.cad.model-project`.
+`dependencies` contains physical model owner ids. A selected dependency selects all downstream consumers transitively. This intentionally matches `template.cad.model-project`.
 
-## Standard builders and runtimes
+## Standard builders and runtime roles
 
-The five standard builder modules are:
+The five standard builder modules are PythonSCAD, pyBOSL2, CadQuery, build123d and SolidCraft.
 
-- PythonSCAD;
-- pyBOSL2;
-- CadQuery;
-- build123d;
-- SolidCraft.
+Reference engines share `cad-reference:v0.3.5`. build123d uses its isolated interpreter inside that container. SolidCraft builds in `cad-solidcraft:v0.3.5`.
 
-Reference engines share `cad-reference:v0.3.5`. build123d uses its isolated interpreter inside that container. SolidCraft builds in `cad-solidcraft:v0.3.5`; mesh verification follows in the reference runtime.
+Builder, verifier and preview runtimes are declared independently. CI derives one dependency graph and starts every required role at most once for the selected batch.
 
-## Verification and preview
+For the qualification box:
+1. SolidCraft builds and runs its native SolidCraft verification in `solidcraft`;
+2. all five implementations run geometry verification in `reference`;
+3. reference previews run only after all applicable verification stages have passed.
 
-Owner-local `verification/` contains expectations. Reusable verification logic lives in `modules/verification/`. A single geometry contract can therefore qualify equivalent implementations of the same physical model.
-
-The configured preview module runs after successful verification. An implementation can set `preview: false` when its builder already produces a native preview, as SolidCraft does.
+No third verification image is used.
 
 ## Durable output
 
-Successful permanent-branch CI publishes owner-grouped output below `build/<scope>/models/`. The owner root contains aggregate status and canonical primary artifacts; each implementation retains its own output below an implementation subdirectory.
+Successful permanent-branch CI publishes owner-grouped output below `build/<scope>/models/`. The owner root contains aggregate status and canonical primary artifacts; each implementation retains its own build, staged verification and preview evidence.
 
 Pull requests upload candidate evidence but do not publish generated branches.
 
