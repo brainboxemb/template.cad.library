@@ -2,6 +2,7 @@
 import argparse
 from html import unescape
 import json
+import re
 from pathlib import Path
 import yaml
 
@@ -35,7 +36,8 @@ def verify(source_root: Path, site: Path, build_scope: Path | None):
                 continue
             html = read(route)
             expected = ["cad-model-detail", str(meta.get("title", item)), "Build and verification"]
-            order = ["expected-setup", "primary-source", "reference-code", "build-verification"]
+            featured = meta.get("presentation_primary", ci.get("primary"))
+            order = ["expected-setup", "featured-result", "primary-source", "reference-code", "image-overview", "check-overview", "build-verification"]
             if not ci.get("implementations"):
                 order.remove("primary-source")
             positions = [html.find(marker) for marker in order]
@@ -47,18 +49,32 @@ def verify(source_root: Path, site: Path, build_scope: Path | None):
             if evidence and (evidence / "result.json").is_file():
                 result = json.loads((evidence / "result.json").read_text())
                 expected.append(json.loads((evidence / "source.json").read_text())["source_sha"])
-                if (evidence / "model.png").is_file():
-                    expected.append(f"/build/{build_scope.name}/models/{item}/model.png")
+                featured_path = f"/build/{build_scope.name}/models/{item}/{featured}/model.png"
+                if (evidence / str(featured) / "model.png").is_file():
+                    expected.append(featured_path)
+                    overview = html[html.find("featured-result"):html.find("primary-source")]
+                    if featured_path not in overview or f"/build/{build_scope.name}/models/{item}/model.png" in overview:
+                        raise RuntimeError(f"{route}: featured result must use its own implementation image")
+                    native = next((i for i in ci.get("implementations", []) if i["id"] == featured), {})
+                    if native.get("builder") in ("builder-solidcraft", "builder-scpf") and native.get("preview") is False:
+                        expected.append("SolidCraft native snapshot")
                 if (evidence / "model.stl").is_file():
                     expected.append(f"/blob/build/{build_scope.name}/models/{item}/model.stl")
                 for impl, state in result.get("implementations", {}).items():
                     impl_root = evidence / impl
                     if (impl_root / "solidcraft.json").is_file() and any(i["id"] == impl for i in ci.get("implementations", [])):
                         expected.append(f"Generated command sequence — {impl}")
-                        if not html.find("cad-command-section") < html.find("reference-code"):
-                            raise RuntimeError(f"{route}: generated commands must precede references")
-                    if impl != ci.get("primary") and (impl_root / "model.png").is_file() and any(i["id"] == impl for i in ci.get("implementations", [])):
-                        expected.append(f"/build/{build_scope.name}/models/{item}/{impl}/model.png")
+                        if not html.find("primary-source") < html.find("cad-command-section") < html.find("reference-code"):
+                            raise RuntimeError(f"{route}: generated commands must follow source and precede references")
+                        details = re.findall(r"<details\b[^>]*cad-command-section[^>]*>", html)
+                        if not details or any(re.search(r"\sopen(?:[\s=>]|$)", tag) for tag in details):
+                            raise RuntimeError(f"{route}: generated commands must be collapsed")
+                    if (impl_root / "model.png").is_file() and any(i["id"] == impl for i in ci.get("implementations", [])):
+                        preview = f"/build/{build_scope.name}/models/{item}/{impl}/model.png"
+                        expected.append(preview)
+                        gallery = html[html.find("image-overview"):html.find("check-overview")]
+                        if preview not in gallery:
+                            raise RuntimeError(f"{route}: missing implementation image in gallery: {impl}")
                     for stage in state.get("verification_stages", {}):
                         report = f"{impl}/verification/{stage}/verification.json"
                         if (evidence / report).is_file():

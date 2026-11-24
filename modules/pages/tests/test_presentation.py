@@ -47,7 +47,8 @@ class PresentationTests(unittest.TestCase):
             root = Path(tmp)
             stage = root / "verification/geometry"
             stage.mkdir(parents=True)
-            (stage / "verification.json").write_text('{"checks":[]}')
+            (stage / "actual.png").touch()
+            (stage / "verification.json").write_text(json.dumps({"checks": [{"id": "geometry", "status": "pass", "artifacts": [{"path": "actual.png"}, {"path": "missing.png"}]}]}))
             (root / "model.png").touch()
             (root / "solidcraft.json").write_text(json.dumps({
                 "commands": [{"command": "solid.box", "params": {"length": 40}}]
@@ -55,6 +56,9 @@ class PresentationTests(unittest.TestCase):
             data = implementation_evidence(root, "https://example.org/blob/reference", "https://example.org/raw/reference", {"status": "pass"})
             self.assertEqual(data["previewurl"], "https://example.org/raw/reference/model.png")
             self.assertEqual(data["commands"][0]["name"], "solid.box")
+            self.assertEqual(data["checks"], [{"stage": "geometry", "id": "geometry", "status": "pass"}])
+            self.assertEqual(len(data["images"]), 1)
+            self.assertTrue(data["images"][0]["url"].endswith("/verification/geometry/actual.png"))
             self.assertIn("verification/geometry/verification.json", data["reports"][0]["url"])
             missing = implementation_evidence(root / "missing", "blob", "raw", {})
             self.assertEqual(missing["previewurl"], "")

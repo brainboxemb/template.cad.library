@@ -61,7 +61,8 @@ class ModelPagesTests(unittest.TestCase):
             (evidence / "source.json").write_text(
                 json.dumps({"source_sha": "test-sha"})
             )
-            (evidence / "model.png").write_text("png")
+            (evidence / "model.png").write_text("owner-level image")
+            (evidence / "cadquery/model.png").write_text("implementation image")
             (evidence / "model.stl").write_text("mesh")
             for implementation in ("cadquery", "legacy"):
                 (evidence / implementation / "model.stl").write_text("mesh")
@@ -74,6 +75,7 @@ class ModelPagesTests(unittest.TestCase):
             page = site / "content/examples/box/index.md"
             content = page.read_text()
             self.assertIn("test-sha", content)
+            self.assertNotIn("build/dev/models/box/model.png", content)
             self.assertIn("value = 42", content)
             self.assertIn("model.py", content)
             self.assertIn(
@@ -81,7 +83,7 @@ class ModelPagesTests(unittest.TestCase):
                 content,
             )
             self.assertIn(
-                "https://raw.githubusercontent.com/owner/repo/build/dev/models/box/model.png",
+                "https://raw.githubusercontent.com/owner/repo/build/dev/models/box/cadquery/model.png",
                 content,
             )
             self.assertIn(
