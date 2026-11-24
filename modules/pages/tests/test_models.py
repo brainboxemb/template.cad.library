@@ -7,9 +7,14 @@ from cad_library_pages.models import prepare_models
 
 
 class ModelPagesTests(unittest.TestCase):
-    def test_multiple_purposes_are_public_and_verification_only_is_not(self):
+    def test_multiple_purposes_are_public_without_copying_build_artifacts(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
+            config = root / "site/config/_default"
+            config.mkdir(parents=True)
+            (config / "hugo.toml").write_text(
+                '[params]\ncadSourceRepository = "owner/repo"\n'
+            )
             for item, purpose in (
                 ("box", "[example, verification]"),
                 ("fixture", "[verification]"),
@@ -23,7 +28,8 @@ class ModelPagesTests(unittest.TestCase):
                     f"id: {item}\nprimary: cadquery\n"
                 )
 
-            evidence = root / "build" / "models" / "box"
+            build_scope = root / "build" / "dev"
+            evidence = build_scope / "models" / "box"
             (evidence / "cadquery/verification").mkdir(parents=True)
             (evidence / "result.json").write_text(json.dumps({
                 "id": "box",
@@ -40,17 +46,26 @@ class ModelPagesTests(unittest.TestCase):
             (evidence / "source.json").write_text(
                 json.dumps({"source_sha": "test-sha"})
             )
+            (evidence / "model.png").write_text("png")
             (evidence / "model.stl").write_text("mesh")
             (evidence / "cadquery/model.stl").write_text("mesh")
             (evidence / "cadquery/result.json").write_text("{}")
             (evidence / "cadquery/verification/verification.json").write_text("{}")
 
-            site = root / "site"
-            prepare_models(root, site, root / "build")
+            site = root / "staged-site"
+            prepare_models(root, site, build_scope)
             page = site / "content/models/box/index.md"
-            self.assertIn("test-sha", page.read_text())
-            self.assertIn("cadquery", page.read_text())
-            self.assertTrue((site / "static/models/box/model.stl").is_file())
+            content = page.read_text()
+            self.assertIn("test-sha", content)
+            self.assertIn(
+                "https://github.com/owner/repo/blob/build/dev/models/box/model.stl",
+                content,
+            )
+            self.assertIn(
+                "https://raw.githubusercontent.com/owner/repo/build/dev/models/box/model.png",
+                content,
+            )
+            self.assertFalse((site / "static/models/box/model.stl").exists())
             self.assertFalse((site / "content/models/fixture").exists())
 
 
