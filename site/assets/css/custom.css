@@ -1149,3 +1149,57 @@ html:not(.dark) .hextra-search-trigger{font-size:.9rem}
 .cad-check-table thead th { background: var(--cad-soft); }
 .cad-check-table tbody th { font-weight: 550; }
 .cad-check-table tbody td { font-family: var(--cad-font-mono); }
+
+/* Visual verification is owned by the model and grouped per declared view. */
+.cad-visual-view {
+  margin-top: 1.15rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--cad-line);
+}
+.cad-visual-view:first-of-type { margin-top: .7rem; }
+.cad-visual-view-heading {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  flex-wrap: wrap;
+}
+.cad-visual-view-heading .cad-section-subtitle { margin: 0; }
+.cad-visual-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: .75rem;
+  margin-top: .75rem;
+}
+.cad-visual-card {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--cad-line);
+  border-radius: 10px;
+  background: var(--cad-panel);
+}
+.cad-visual-card a {
+  display: flex;
+  aspect-ratio: 4 / 3;
+  align-items: center;
+  justify-content: center;
+  background: var(--cad-soft);
+}
+.cad-visual-card img {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  object-fit: contain;
+}
+.cad-visual-card figcaption {
+  padding: .55rem .7rem;
+  color: var(--cad-ink);
+  font-size: .84rem;
+  font-weight: 700;
+}
+@media (max-width: 1050px) {
+  .cad-visual-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .cad-visual-grid { grid-template-columns: 1fr; }
+}
