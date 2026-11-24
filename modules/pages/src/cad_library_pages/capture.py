@@ -38,7 +38,10 @@ def capture(site: Path, base_path: str, output: Path):
             for name, route in routes:
                 if not (site / route / "index.html").is_file():
                     raise RuntimeError(f"missing generated route: {route}")
-                for label, dimensions in (("desktop", "1440,1200"), ("mobile", "420,1000")):
+                views = [("desktop", "1440,1200"), ("mobile", "420,1000")]
+                if name.startswith("example-"):
+                    views += [("desktop-full", "1440,5200"), ("mobile-full", "420,6500")]
+                for label, dimensions in views:
                     with tempfile.TemporaryDirectory(prefix="chrome-") as profile:
                         screenshot = output / f"{name}-{label}.png"
                         subprocess.run([chrome, "--headless", "--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage",

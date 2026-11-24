@@ -54,6 +54,14 @@ jobs:
           --build-scope prepared-build/dev
           --destination generated-site
           --base-url "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
+      - name: Verify generated site contract
+        env:
+          PYTHONPATH: modules/pages/src
+        run: >-
+          python -m cad_library_pages.verify
+          --source-root .
+          --build-scope prepared-build/dev
+          --site generated-site
 
       - name: Capture rendered presentation
         env:
