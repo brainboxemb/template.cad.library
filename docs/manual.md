@@ -129,6 +129,6 @@ Pull requests upload candidate evidence but do not publish generated branches.
 
 ## Pages
 
-Pages is separate from CAD CI. Hugo consumes `models/` metadata and the corresponding durable build scope. Verification-only owners are excluded; an owner containing both `example` and `verification` is public.
+Pages is separate from CAD CI. Hugo consumes `models/` metadata and the corresponding durable build scope. Verification-only owners are excluded; an owner containing both `example` and `verification` is public. When implementation results contain named `verification_stages`, Pages renders each stage status and links the stage-local durable report. Legacy/single-stage results remain supported through the aggregate verification status and compatibility report link.
 
 Stable content is published at `/` and development content at `/dev/`.
