@@ -1,4 +1,4 @@
-"""Example ownership and engine-neutral batch planning."""
+"""Example ownership and engine-neutral runtime planning."""
 from dataclasses import dataclass
 from pathlib import Path
 import re
@@ -19,12 +19,14 @@ class Example:
     adapter: str
     definition: Path
     runtime: str
+    verify_runtime: str
     build_entry: str
     verify_entry: str
     dependencies: tuple[str, ...]
     watch_prefix: str
     preview_entry: str | None = None
     preview_adapter: str | None = None
+    engine_python: str | None = None
 
 
 def owned_file(root, value):
@@ -42,6 +44,9 @@ def capability(modules, item_id, kind):
     data = mapping(modules[item_id].root / "ci.yml").get(kind)
     if not isinstance(data, dict) or not _ENTRY.fullmatch(str(data.get("entrypoint", ""))):
         raise ConfigError(f"invalid {kind} capability: {item_id}")
+    runtime = data.get("runtime")
+    if not isinstance(runtime, str) or not _ID.fullmatch(runtime):
+        raise ConfigError(f"invalid {kind} runtime: {item_id}")
     return data
 
 
@@ -67,22 +72,35 @@ def discover_examples(repo, modules):
         b = capability(by_id, builder, "builder")
         verifier = v["module"]
         vc = capability(by_id, verifier, "verifier")
-        runtime = b.get("runtime")
-        if not isinstance(runtime, str) or not _ID.fullmatch(runtime):
-            raise ConfigError(f"invalid runtime for {builder}")
+        runtime, verify_runtime = b["runtime"], vc["runtime"]
+        engine_python = b.get("python")
+        if engine_python is not None and (not isinstance(engine_python, str) or not Path(engine_python).is_absolute() or ".." in Path(engine_python).parts):
+            raise ConfigError(f"invalid runtime interpreter for {builder}")
         needs = data.get("needs", [])
         if not isinstance(needs, list) or any(n != "cadlib" and n not in by_id for n in needs):
             raise ConfigError(f"invalid dependencies: {path}")
+        builder_needs = b.get("needs", [])
+        if not isinstance(builder_needs, list) or not all(isinstance(n, str) and n in by_id for n in builder_needs):
+            raise ConfigError(f"invalid builder dependencies: {builder}")
+        needs = [*needs, *builder_needs]
         preview_entry = preview_adapter = None
         if (preview := data.get("preview")) is not None:
             if not isinstance(preview, dict) or not isinstance(preview.get("module"), str) or not isinstance(preview.get("adapter"), str):
                 raise ConfigError(f"invalid preview capability: {path}")
-            preview_entry = capability(by_id, preview["module"], "preview")["entrypoint"]
+            pc = capability(by_id, preview["module"], "preview")
+            if pc["runtime"] != verify_runtime:
+                raise ConfigError("preview runtime must match verifier runtime")
+            preview_entry = pc["entrypoint"]
             preview_adapter = preview["adapter"]
             needs = [*needs, preview["module"]]
-        examples.append(Example(item_id, directory, builder, owned_file(directory, data.get("source")),
-            verifier, v["adapter"], owned_file(directory, v.get("definition")), runtime,
-            b["entrypoint"], vc["entrypoint"], tuple(dict.fromkeys([builder, verifier, *needs])), directory.relative_to(repo).as_posix() + "/", preview_entry, preview_adapter))
+        examples.append(Example(
+            item_id, directory, builder, owned_file(directory, data.get("source")),
+            verifier, v["adapter"], owned_file(directory, v.get("definition")),
+            runtime, verify_runtime, b["entrypoint"], vc["entrypoint"],
+            tuple(dict.fromkeys([builder, verifier, *needs])),
+            directory.relative_to(repo).as_posix() + "/",
+            preview_entry, preview_adapter, engine_python,
+        ))
         seen.add(item_id)
     return tuple(examples)
 
