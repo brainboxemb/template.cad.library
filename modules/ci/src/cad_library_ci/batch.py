@@ -36,7 +36,7 @@ def runtime_order(models):
 
 def _record(repo, runtimes, model, impl):
     return {
-        "task_id": f"{model.id}:{impl.id}",
+        "task_id": f"{model.id}--{impl.id}",
         "owner": model.id,
         "implementation": impl.id,
         "builder": impl.builder,

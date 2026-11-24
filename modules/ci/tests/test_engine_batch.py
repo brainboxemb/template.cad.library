@@ -12,7 +12,7 @@ class EngineBatchTests(unittest.TestCase):
     def test_one_child_for_two_rows_and_parent_verification(self):
         rows = [
             {
-                "task_id": f"box:{impl}",
+                "task_id": f"box--{impl}",
                 "owner": "box",
                 "implementation": impl,
                 "builder": "test",
@@ -69,7 +69,7 @@ class EngineBatchTests(unittest.TestCase):
 
     def test_missing_child_report_fails_batch(self):
         row = {
-            "task_id": "box:a",
+            "task_id": "box--a",
             "owner": "box",
             "implementation": "a",
             "builder": "test",

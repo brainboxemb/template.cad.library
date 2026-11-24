@@ -10,7 +10,7 @@ from cad_library_ci.runtime import execute
 class RuntimeTests(unittest.TestCase):
     def test_negative_verification_fails_implementation(self):
         row = {
-            "task_id": "box:cadquery",
+            "task_id": "box--cadquery",
             "owner": "box",
             "implementation": "cadquery",
             "builder": "test",
