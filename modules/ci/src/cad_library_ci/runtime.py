@@ -170,7 +170,7 @@ def _verify(manifest, output):
                     Path(row["definition"]),
                     stage_root,
                     verification_id=(
-                        f"{row['task_id']}:{row['stage_id']}"
+                        f"{row['owner']}-{row['implementation']}-{row['stage_id']}"
                     ),
                 )
                 status = report["status"]
