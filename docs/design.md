@@ -44,16 +44,11 @@ A **model directory is the selection and publication owner**. Engine implementat
 purpose: [example, verification]
 ```
 
-Supported values are:
-
-- `example`: publish the model in the public catalogue;
-- `verification`: use the model as qualification/verification evidence.
-
-A model may have either purpose or both. Verification-only models stay out of Pages.
+Supported values are `example` and `verification`. A model may have either or both. Verification-only models stay out of Pages.
 
 ## Model execution contract
 
-`models/<id>/ci.yml` owns process identity and implementation execution:
+`models/<id>/ci.yml` owns process identity, implementation execution and verification stages:
 
 ```yaml
 schema: 1
@@ -70,59 +65,92 @@ implementations:
     source: solidcraft/commands.json
     preview: false
 
-verification:
-  module: verification
-  adapter: mesh-geometry
-  definition: verification/geometry.json
+verifications:
+  - id: native
+    module: verification
+    adapter: solidcraft-model
+    definition: verification/solidcraft.py
+    artifact: model.sc
+    implementations: [solidcraft]
+  - id: geometry
+    module: verification
+    adapter: mesh-geometry
+    definition: verification/geometry.json
+    artifact: model.stl
 
 preview:
   module: preview
   adapter: mesh
-
-dependencies: []
-needs: []
 ```
 
-The owner is selected once; CI expands all declared implementations. `primary` determines the canonical owner-level STL/preview used for presentation. Each implementation still retains its own build and verification evidence.
+The owner is selected once; CI expands declared implementations and applicable verification stages. `primary` determines canonical owner-level artifacts. Each implementation retains its own build, stage and preview evidence.
 
-Physical model dependencies name other owner ids. Selection closes transitively over downstream dependents, matching the model-project behavior.
+The legacy single `verification:` mapping remains supported and maps to one STL verification stage.
 
 ## Capability boundaries
 
-CI decides **what owners** run. Builders decide **how one implementation** becomes CAD artifacts. Verification checks generated artifacts against owner-local expectations. Preview renders verified geometry. Pages consumes durable evidence only.
+CI decides **what owners and runtime roles** run. Builders decide **how one implementation** becomes CAD artifacts. Verifier capabilities map adapters to runtime-local entrypoints. Verification stages apply generated artifacts to owner-local expectations. Preview renders already-built verified geometry. Pages consumes durable evidence only.
 
 No central engine switch is allowed. Runtime and adapter behavior remains module-local.
 
 ## Runtime graph
 
-Root `ci.yml` pins two immutable images from `docker.cad.solidcraft v0.3.5`:
+Root `ci.yml` pins exactly two immutable images:
 
 - `reference`: PythonSCAD, pyBOSL2, CadQuery, build123d and geometry tooling;
 - `solidcraft`: SolidCraft 0.48.1 without the heavy reference geometry stack.
 
-Builder and verifier runtimes are independent capabilities. For a multi-engine owner, all reference implementations build in one reference batch. SolidCraft builds in the SolidCraft role first and its STL is then verified in the reference role.
+For every implementation CI derives edges from:
+- build runtime -> each applicable verifier runtime;
+- build runtime -> preview runtime;
+- each verifier runtime -> preview runtime when they differ.
+
+The graph is topologically ordered and each role starts at most once per selected batch. A cycle is a configuration error.
+
+The current cross-role qualification is:
+
+```text
+solidcraft build
+  ├─ native solidcraft-model verification
+  └───────────────┐
+                  v
+          reference geometry verification
+                  v
+             reference preview
+```
+
+Reference implementations build and verify entirely inside the reference role.
+
+## Stage evidence and aggregation
+
+Runtime-local stage evidence is never overwritten by a later role:
+
+```text
+build/<scope>/models/<owner>/<implementation>/
+  build.json
+  model.stl
+  model.sc                 # when produced
+  verification/
+    native/
+      verification.json
+      stage-result.json
+    geometry/
+      verification.json
+      stage-result.json
+    verification.json      # compatibility alias to canonical stage
+  preview-result.json
+  result.json
+```
+
+The implementation result aggregates build, all applicable stages and preview. The owner result aggregates implementations. Owner-level canonical artifacts come from the configured primary implementation.
+
+## Physical dependencies
+
+Physical model dependencies name other owner ids. Selection closes transitively over downstream dependents, matching the model-project behavior.
 
 ## Durable output
 
-Generated evidence is owner-grouped:
-
-```text
-build/<scope>/models/simple-box/
-  result.json
-  source.json
-  model.stl
-  model.png
-  verification/
-  cadquery/
-  build123d/
-  pythonscad/
-  pybosl2/
-  solidcraft/
-```
-
-The owner-level artifacts come from the configured primary implementation. Implementation directories preserve their engine-specific artifacts and reports.
-
-Incremental publication replaces selected model owners, preserves untouched active owners with their source provenance and removes deleted owners.
+Incremental publication replaces selected model owners, preserves untouched active owners with their source provenance and removes deleted owners. Permanent successful runs publish separate `main/` and `dev/` scopes on the generated `build` branch.
 
 ## Presentation
 
