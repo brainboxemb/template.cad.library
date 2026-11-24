@@ -8,4 +8,4 @@ Internal Python capabilities own ci.yml, pyproject.toml, src/ and tests/ under m
 
 Matching work-branch build.yml controls selection; stale selections are ignored. Dev selects changes since the last successful integration CI run, including declared impact. Main and dev-to-main PRs run full. Cancel superseded runs. Keep generated output below build/.
 
-Pages is separate from CI; publish main at / and dev at /dev/ on gh-pages. Hugo consumes documentation, not CAD execution. Never put release evidence in Pages. Forge and examples verification are planned separate owners; do not create model-project-specific workarounds.
+Pages is separate from CI; publish main at / and dev at /dev/ on gh-pages. Hugo consumes documentation, not CAD execution. Never put release evidence in Pages. The cadlib and examples roots are separate owners. Reusable verification code belongs in modules/verification; example-owned expectations stay in the example. Do not create model-project-specific workarounds.

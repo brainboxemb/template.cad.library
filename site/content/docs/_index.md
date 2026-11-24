@@ -2,4 +2,4 @@
 title: Documentation
 ---
 
-Library documentation and API reference will be added as part of the Forge integration.
+The CAD library source lives under cadlib/. Standard CAD builders and independent verification modules are part of the library architecture. Library-specific API reference will be added during adoption.
