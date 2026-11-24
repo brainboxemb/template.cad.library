@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/4-standard-builder-contract
-modules: [ci]
+branch: issue/12-site-layout
+modules: [pages]
 library: false
 examples: []
 tasks: [test]
