@@ -3,11 +3,11 @@
   <section class="cad-model-hero cad-model-hero-small">
     <p class="cad-model-kicker">CAD library</p>
     <h1>{{ .Title }}</h1>
-    <p>Explore the library examples and their build and verification evidence.</p>
+    <p>{{ .Description }}</p>
   </section>
   <section class="cad-section cad-catalog-section">
     <div class="cad-model-grid">
-      {{ range .RegularPages.ByWeight }}{{ partial "cad/example-card.html" . }}{{ end }}
+      {{ range .RegularPages.ByWeight }}{{ partial "cad/model-card.html" . }}{{ end }}
     </div>
   </section>
 </main>

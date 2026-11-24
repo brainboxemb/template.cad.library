@@ -1,0 +1,43 @@
+{{ define "main" }}
+{{ $m := .Params.model }}
+<article class="cad-page-shell cad-model-detail">
+  <header class="cad-model-hero">
+    <p class="cad-model-kicker">{{ .CurrentSection.Title }}</p>
+    <h1>{{ .Title }}</h1>
+    {{ with $m.tagline }}<p>{{ . }}</p>{{ end }}
+  </header>
+  <div class="cad-model-statusbar">
+    {{ if eq .Params.status "pass" }}<span class="cad-status cad-status-ok">Verified</span>{{ else }}<span class="cad-status cad-status-pending">No published build evidence</span>{{ end }}
+    {{ with .Params.primary }}<span class="cad-status">{{ . }}</span>{{ end }}
+    {{ with $m.parameters }}<span class="cad-status">{{ . }}</span>{{ end }}
+  </div>
+  <div class="cad-model-overview">
+    <section class="cad-panel cad-preview-panel">
+      <h2 class="cad-section-title">Model preview</h2>
+      <div class="cad-preview">
+        {{ with .Params.previewurl }}<a href="{{ . }}" class="cad-preview-link"><img src="{{ . }}" alt="{{ $.Title }} build preview"></a>{{ else }}<div class="cad-preview-empty">No generated model preview is available.</div>{{ end }}
+      </div>
+      {{ with $m.description }}<p class="cad-model-description">{{ . }}</p>{{ end }}
+    </section>
+    <aside class="cad-panel cad-files-panel">
+      <h2 class="cad-section-title">Files</h2>
+      <div class="cad-links cad-file-links">
+        {{ range .Params.files }}<a href="{{ .url }}">{{ .label }}</a>{{ else }}<p>No published build files.</p>{{ end }}
+      </div>
+      {{ with $m.stages }}<h3 class="cad-section-subtitle">Construction stages</h3><ul class="cad-stages">{{ range . }}<li>{{ . }}</li>{{ end }}</ul>{{ end }}
+    </aside>
+  </div>
+  {{ with .Params.background }}<section class="cad-panel cad-background"><h2 class="cad-section-title">Background</h2><div class="cad-rich-text">{{ $.RenderString . }}</div></section>{{ end }}
+  {{ range .Params.sources }}
+  <details class="cad-code-section cad-collapsible">
+    <summary><span class="cad-section-title cad-collapsible-title">{{ .id }} source</span></summary>
+    <p class="cad-section-help">Displayed source; the built revision is recorded below.</p>
+    <div class="cad-collapsible-body">{{ partial "cad/codeblock.html" (dict "lang" .lang "content" .content "label" .path) }}</div>
+  </details>
+  {{ end }}
+  <section class="cad-panel cad-verification-panel">
+    <h2 class="cad-section-title">Build and verification</h2>
+    <div class="content">{{ .Content }}</div>
+  </section>
+</article>
+{{ end }}

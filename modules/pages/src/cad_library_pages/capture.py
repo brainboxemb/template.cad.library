@@ -16,9 +16,10 @@ def capture(site: Path, base_path: str, output: Path):
     chrome = next((p for n in ("google-chrome", "google-chrome-stable", "chromium") if (p := shutil.which(n))), None)
     if not chrome:
         raise RuntimeError("Chrome/Chromium is required")
-    routes = [("home", ""), ("catalogue", "examples/")]
-    routes.extend((f"example-{p.parent.name}", f"examples/{p.parent.name}/")
-                  for p in sorted((site / "examples").glob("*/index.html")))
+    routes = [("home", ""), ("documentation", "docs/"), ("examples", "examples/"), ("verification", "verification/")]
+    for section in ("examples", "verification"):
+        routes.extend((f"{section}-{p.parent.name}", f"{section}/{p.parent.name}/")
+                      for p in sorted((site / section).glob("*/index.html")))
     failures = []
     class Handler(SimpleHTTPRequestHandler):
         def log_message(self, format, *args):
@@ -39,7 +40,7 @@ def capture(site: Path, base_path: str, output: Path):
                 if not (site / route / "index.html").is_file():
                     raise RuntimeError(f"missing generated route: {route}")
                 views = [("desktop", "1440,1200"), ("mobile", "420,1000")]
-                if name.startswith("example-"):
+                if name.startswith(("examples-", "verification-")):
                     views += [("desktop-full", "1440,5200"), ("mobile-full", "420,6500")]
                 for label, dimensions in views:
                     with tempfile.TemporaryDirectory(prefix="chrome-") as profile:

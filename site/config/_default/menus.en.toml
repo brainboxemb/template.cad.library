@@ -9,13 +9,18 @@ pageRef = "/examples"
 weight = 20
 
 [[main]]
-name = "Search"
+name = "Verification"
+pageRef = "/verification"
 weight = 30
+
+[[main]]
+name = "Search"
+weight = 40
 [main.params]
 type = "search"
 
 [[main]]
 name = "Theme"
-weight = 40
+weight = 50
 [main.params]
 type = "theme-toggle"

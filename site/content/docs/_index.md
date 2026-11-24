@@ -1,5 +1,14 @@
 ---
 title: Documentation
+cascade:
+  type: docs
 ---
 
-The CAD library source lives under cadlib/. Standard CAD builders and independent verification modules are part of the library architecture. Library-specific API reference will be added during adoption.
+Explore how to use the library, read its API and study practical models.
+
+{{< cards >}}
+  {{< card link="../examples/" title="Examples" subtitle="Learn from model source and built geometry." >}}
+  {{< card link="../verification/" title="Verification" subtitle="Inspect qualification across CAD implementations." >}}
+{{< /cards >}}
+
+Library-specific guides and API reference are supplied by the consuming library.

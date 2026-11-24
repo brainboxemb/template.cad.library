@@ -3,10 +3,11 @@
   <section class="cad-hero">
     <p class="cad-eyebrow">CAD library</p>
     <h1>{{ site.Title }}</h1>
-    <p>Explore the library documentation and examples, including their source and verified CAD build output.</p>
+    <p>Explore the library documentation and examples and verification, including their source and verified CAD build output.</p>
     <div class="cad-actions">
       <a class="cad-button" href="{{ "docs/" | relURL }}">Documentation</a>
       <a class="cad-button cad-button-secondary" href="{{ "examples/" | relURL }}">Browse examples</a>
+      <a class="cad-button cad-button-secondary" href="{{ "verification/" | relURL }}">Verification</a>
     </div>
   </section>
   {{ $examples := where site.RegularPages "Section" "examples" }}
@@ -14,7 +15,7 @@
   <section class="cad-section">
     <div class="cad-section-heading"><h2>Examples</h2><p>Source-owned examples and published build evidence.</p></div>
     <div class="cad-model-grid">
-      {{ range $examples.ByWeight }}{{ partial "cad/example-card.html" . }}{{ end }}
+      {{ range $examples.ByWeight }}{{ partial "cad/model-card.html" . }}{{ end }}
     </div>
   </section>
   {{ end }}

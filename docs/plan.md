@@ -2,11 +2,22 @@
 
 ## Now
 
-- #4: standard library architecture is implemented: independent cadlib owner, five standard builders, local verification, previews, examples, two runtime roles and durable build publication. Remaining acceptance is consumer migration before the historical verification repository can be retired.
-- #12: qualify the established Hextra CAD presentation visually and on public main/dev routes.
+- #25: qualify generic named verification stages across runtime roles. The first real consumer is Forge NEW historical simple-box: native saved-design/timeline verification in `solidcraft` plus mesh verification in `reference`.
+- #12: restore the shared Hextra/CAD foundation using current template.cad.model-project and CAD NEW styling; qualify the current physical-owner/purpose projection and multi-engine evidence with rendered desktop/mobile screenshots before consumer adoption.
+- #4: keep consumer migration open until Forge NEW is proven on the corrected template.
+
+## Qualified baseline
+
+- physical owner root is `models/`, matching `template.cad.model-project`;
+- one owner can contain multiple engine implementations;
+- `model.yml.purpose` may contain `example`, `verification`, or both;
+- five standard builders are qualified through one `simple-box` owner;
+- durable publication is owner-grouped below `build/<scope>/models/`;
+- Pages links durable CAD artifacts instead of duplicating them.
 
 ## Next
 
-- Promote the completed five-builder baseline from `dev` to `main` after permanent-branch qualification.
-- Migrate Forge onto this repository structure and remove its external verification dependency only after equivalent CI/build/site behavior is proven.
-- Adapt the generic example presentation to richer consumer metadata as real Forge examples are migrated; do not add template-only page conventions without a consumer need.
+- merge #25 after the multi-stage simple-box runtime run is green;
+- consume #25 in `lib.py.solidcraft.forge.NEW#6` and qualify the historical saved-design case;
+- migrate Forge physical models 1 -> 5 -> 10 -> remaining graph;
+- retain the old Forge repository as A/B reference until parity is proven.

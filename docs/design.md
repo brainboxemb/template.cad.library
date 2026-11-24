@@ -2,18 +2,27 @@
 
 ## Ownership
 
+The library follows the same physical model-owner concept as `template.cad.model-project`.
+
 ```text
 cadlib/
   ci.yml
   pyproject.toml
-  src/<package>/
+  src/<consumer package>/
   tests/
+
+models/
+  ci.yml
+  <model-id>/
+    ci.yml
+    model.yml
+    <engine>/...
+    verification/...
+
 modules/
   ci/
-  branch-cleanup/
-  merge-policy/
-  pages/
   build/
+  pages/
   verification/
   preview/
   builder-pythonscad/
@@ -21,66 +30,134 @@ modules/
   builder-cadquery/
   builder-build123d/
   builder-solidcraft/
-examples/
-  <id>/
-    ci.yml
-    model.yml
-    <engine>/
-    verification/
-site/
 ```
 
-`cadlib/` is a repository role, not a required import name. A Forge consumer may therefore continue to expose SCPF while using this repository architecture.
+`cadlib/` is a repository role, not an import name. A Forge consumer can therefore expose `scpf` unchanged.
+
+A **model directory is the selection and publication owner**. Engine implementations are local implementations of that owner, never sibling owners.
+
+## Model metadata and purpose
+
+`model.yml` owns presentation intent. `purpose` accepts one or more supported purposes:
+
+```yaml
+purpose: [example, verification]
+```
+
+Supported values are `example` and `verification`. A model may have either or both. Pages projects each declared purpose into its own catalogue; both purposes may refer to the same physical owner.
+
+## Model execution contract
+
+`models/<id>/ci.yml` owns process identity, implementation execution and verification stages:
+
+```yaml
+schema: 1
+id: simple-box
+process: true
+primary: cadquery
+
+implementations:
+  - id: cadquery
+    builder: builder-cadquery
+    source: cadquery/model.py
+  - id: solidcraft
+    builder: builder-solidcraft
+    source: solidcraft/commands.json
+    preview: false
+
+verifications:
+  - id: native
+    module: verification
+    adapter: solidcraft-model
+    definition: verification/solidcraft.py
+    artifact: model.sc
+    implementations: [solidcraft]
+  - id: geometry
+    module: verification
+    adapter: mesh-geometry
+    definition: verification/geometry.json
+    artifact: model.stl
+
+preview:
+  module: preview
+  adapter: mesh
+```
+
+The owner is selected once; CI expands declared implementations and applicable verification stages. `primary` determines canonical owner-level artifacts. Each implementation retains its own build, stage and preview evidence.
+
+The legacy single `verification:` mapping remains supported and maps to one STL verification stage.
+
+## Model-local source contracts
+
+A physical owner may contain `tests/` for source/compiler semantics that are specific to that model. CI runs those tests only when the owner is selected. `cadlib/src` and the model root are available on `PYTHONPATH`; library dependencies are installed only when a tested owner declares `needs: [cadlib]` and they were not already installed through library selection. Reference CAD engines are not installed for these host-side tests. Geometry/native checks remain verification stages.
 
 ## Capability boundaries
 
-CI decides **what** to run. A builder decides **how** one explicit source becomes CAD artifacts. Verification decides whether those artifacts satisfy explicit expectations. Preview decides how already-built geometry is presented. Pages only reads authored metadata and durable evidence.
+CI decides **what owners and runtime roles** run. Builders decide **how one implementation** becomes CAD artifacts. Verifier capabilities map adapters to runtime-local entrypoints. Verification stages apply generated artifacts to owner-local expectations. Preview renders already-built verified geometry. Pages consumes durable evidence only.
 
-These boundaries are expressed through module-local `ci.yml` capabilities rather than a central engine switch.
-
-## Standard builders
-
-| Builder | Input contract | Build runtime |
-| --- | --- | --- |
-| `builder-pythonscad` | Python source exposing `model.export(...)` | reference |
-| `builder-pybosl2` | pyBOSL2 source using the same export contract | reference |
-| `builder-cadquery` | Python source exposing `model` | reference |
-| `builder-build123d` | Python source exposing `model` | reference via `/opt/build123d/bin/python` |
-| `builder-solidcraft` | SolidCraft command-document JSON | solidcraft |
-
-The SolidCraft builder is intentionally independent of Forge. A consumer that compiles another DSL or library to SolidCraft commands does that before invoking the generic SolidCraft builder.
+No central engine switch is allowed. Runtime and adapter behavior remains module-local.
 
 ## Runtime graph
 
-Root `ci.yml` pins two immutable images from `docker.cad.solidcraft v0.3.5`:
+Root `ci.yml` pins exactly two immutable images:
 
-- reference: PythonSCAD 1.1.2, pyBOSL2 at the qualified revision, CadQuery 2.8.0, build123d 0.12.0, trimesh/scipy/Pillow;
-- solidcraft: SolidCraft 0.48.1 and Pillow, without the heavy reference geometry stack.
+- `reference`: PythonSCAD, pyBOSL2, CadQuery, build123d and geometry tooling;
+- `solidcraft`: SolidCraft 0.48.1 without the heavy reference geometry stack.
 
-Builders and verifiers declare runtimes independently. Selected examples produce a small dependency graph between runtime roles. CI topologically orders that graph and starts every required role once.
+For every implementation CI derives edges from:
+- build runtime -> each applicable verifier runtime;
+- build runtime -> preview runtime;
+- each verifier runtime -> preview runtime when they differ.
 
-Current cross-role edge:
+The graph is topologically ordered and each role starts at most once per selected batch. A cycle is a configuration error.
+
+The current cross-role qualification is:
 
 ```text
 solidcraft build
-      ↓
-reference mesh verification
+  ├─ native solidcraft-model verification
+  └───────────────┐
+                  v
+          reference geometry verification
+                  v
+             reference preview
 ```
 
-Reference builders have no cross-role edge and are built and verified within the same reference container.
+Reference implementations build and verify entirely inside the reference role.
 
-## Verification
+## Stage evidence and aggregation
 
-`modules/verification/` contains the local `cad_verification` package and its functional tests. It is based on the previous external verification repository but no runtime Git dependency remains.
+Runtime-local stage evidence is never overwritten by a later role:
 
-`examples/<id>/verification/` owns expectations such as geometry contracts. Verification receives built artifacts and expectations; it does not build models, schedule work or publish Pages.
+```text
+build/<scope>/models/<owner>/<implementation>/
+  build.json
+  model.stl
+  model.sc                 # when produced
+  verification/
+    native/
+      verification.json
+      stage-result.json
+    geometry/
+      verification.json
+      stage-result.json
+    verification.json      # compatibility alias to canonical stage
+  preview-result.json
+  result.json
+```
 
-The separate historical verification repository remains untouched until consumers have migrated.
+The implementation result aggregates build, all applicable stages and preview. The owner result aggregates implementations. Owner-level canonical artifacts come from the configured primary implementation.
+
+## Physical dependencies
+
+Physical model dependencies name other owner ids. Selection closes transitively over downstream dependents, matching the model-project behavior.
+
+## Durable output
+
+Incremental publication replaces selected model owners, preserves untouched active owners with their source provenance and removes deleted owners. Permanent successful runs publish separate `main/` and `dev/` scopes on the generated `build` branch.
 
 ## Presentation
 
-`modules/preview/` renders deterministic STL previews in the reference runtime after successful verification. SolidCraft can produce its own native snapshot during its build.
+Hugo reads model metadata plus durable build output. It never executes CAD or verification. Each declared `model.yml.purpose` projects the owner into Examples and/or Verification. Legacy Models routes redirect to the matching purpose view. Pages must not copy generated CAD artifacts.
 
-Hugo reads only durable build output. Public visibility is controlled by `model.yml.purpose`: `example` is public, `verification` alone is not.
-
-The custom example layouts reuse the established Hextra CAD presentation baseline; documentation, API and guide pages use Hextra's normal documentation layout.
+The custom model presentation continues to use the established Hextra CAD baseline from `exp.2026-015.hugo-cad-site` and `template.cad.model-project`.

@@ -1,9 +1,38 @@
-# CAD builder qualification
+# CAD builder and verification qualification
 
-The first example is a 40 x 30 x 10 mm CadQuery box based at Z=0. Its independently authored geometry contract checks bounds, volume and watertightness.
+The contract is evaluated through physical model owners.
 
-Each module declares a builder capability (runtime and Python entrypoint) or verifier capability (Python entrypoint) in its local ci.yml. An example declares its builder, source, verification module, adapter and definition. Optional needs declares additional module or cadlib dependencies. CI resolves builder and verifier runtimes independently. It topologically orders runtime roles and starts each required Docker role once. A SolidCraft example is built first in the lightweight SolidCraft role and its STL is then verified in the reference role; reference-engine examples are built and verified in that same reference container. Local source directories are mounted read-only. Build and verification adapters are resolved from module metadata, not from a central engine switch.
+`models/simple-box` owns one 40 × 30 × 10 mm physical definition and five engine implementations: CadQuery, build123d, PythonSCAD, pyBOSL2 and SolidCraft.
 
-This first contract currently exports STL. The generic runtime dispatcher records build status, verification status and a batch report. A failed verification fails the batch. Outputs are written below build/qualification/examples/<id>/. Successful permanent CI publishes examples to the generated build branch, with separate main/dev scopes. A full build replaces the scope; an incremental build replaces selected examples and removes deleted owners, preserving per-example source provenance for untouched output. Hugo builds a temporary site from metadata and the corresponding published scope. PRs upload candidate evidence but do not publish to generated branches. These publication paths require integration qualification.
+Each implementation chooses a standard builder module. Builder capabilities declare their runtime and entrypoint locally; the model owner does not encode engine behavior into central CI.
 
-Temporary branch example selection is explicit in build.yml. Dev derives example selection from changed example paths and selected dependency modules; main runs all. build123d uses its isolated interpreter inside the reference container. SolidCraft command documents produce native .sc, STL and a SolidCraft snapshot in the SolidCraft role; generic mesh verification remains in the reference role. Additional non-STL interchange formats remain builder-specific follow-up work.
+The model currently qualifies two verification stages:
+
+- `native`: only the SolidCraft implementation, using `solidcraft-model` in the `solidcraft` role against `model.sc`;
+- `geometry`: all five implementations, using `mesh-geometry` in the `reference` role against `model.stl`.
+
+Verifier adapter/runtime ownership is declared by `modules/verification/ci.yml`. Central CI only resolves capabilities and schedules runtime dependencies.
+
+Reference-engine implementations are built together in one `reference` Docker role. build123d uses its isolated interpreter inside that role. SolidCraft builds in the separate lightweight `solidcraft` role, runs native verification there, and then its STL joins the reference geometry batch.
+
+Generated candidate output is grouped by model owner:
+
+```text
+build/qualification/models/<owner>/
+  result.json
+  model.stl
+  model.png
+  <implementation>/
+    build.json
+    result.json
+    model.stl
+    verification/
+      <stage>/
+        verification.json
+        stage-result.json
+      verification.json
+```
+
+A later verification role does not overwrite earlier stage evidence. An implementation passes only when its build, all applicable stages and configured preview pass.
+
+Permanent successful builds publish separate `main/` and `dev/` scopes to the generated build branch. Incremental publication replaces complete selected owners and preserves untouched active owners.

@@ -1,17 +1,25 @@
 # Agent guidance
 
-Read `docs/plan.md` and `docs/manual.md` before changing the repository.
+Read `docs/plan.md`, `docs/design.md` and `docs/manual.md` before changing the repository.
 
-Work from a temporary branch based on `dev`; set `build.yml.branch` to the actual branch and select the necessary library/modules/examples. Squash temporary branches into `dev`. Promote `dev` to `main` using a merge commit. Merge `main` back only for actual stable-only content. Never clean up `main`, `dev`, `build` or `gh-pages`.
+Work from a temporary branch based on `dev`. Set `build.yml.branch` to the actual branch and select the necessary library, modules and **physical model owners**. Squash temporary branches into `dev`; promote `dev` to `main` with a merge commit.
 
-Internal Python capabilities own `ci.yml`, `pyproject.toml`, `src/` and `tests/`. Keep workflows thin and run capabilities directly from source. Do not add a central module or engine registry.
+The repository root for CAD ownership is `models/`, matching `template.cad.model-project`. Do not reintroduce `examples/` as an execution owner root.
 
-Builders, verifiers and previews declare their own runtime capability. Keep engine behavior in the owning module. Central CI may schedule capabilities and runtime roles but must not contain CadQuery/build123d/PythonSCAD/pyBOSL2/SolidCraft branches.
+One `models/<id>/` directory is one physical owner. Multiple engine implementations belong under that owner and are declared in its `ci.yml`. Do not create sibling owners such as `model-build123d` or `model-solidcraft` solely to represent engines.
 
-Preserve the two released runtime roles. A SolidCraft build runs in `solidcraft`; generic mesh verification runs in `reference`. Do not merge the images and do not add a third verification image.
+`model.yml.purpose` may contain multiple purposes. Supported values are `example` and `verification`; `[example, verification]` is valid.
 
-Matching work-branch `build.yml` controls selection; stale selections are ignored. `dev` selects changes since the last successful integration CI run. `main` and `dev -> main` promotion run full. Cancel superseded runs. Keep generated output below `build/`.
+Builders, verifier adapters and previews declare runtime capabilities locally. Central CI schedules owners, implementation tasks, verification stages and runtime roles but must not contain engine-specific branches.
 
-The `cadlib` and examples roots are separate owners. Reusable verification belongs in `modules/verification`; example-owned expectations stay in the example. Verification-only fixtures must not enter the public catalogue.
+A model may declare multiple named verification stages. Stage evidence must remain isolated below the stage id; a later runtime may not overwrite an earlier stage report. Keep the legacy single `verification:` mapping backward compatible.
 
-Pages is separate from CI. Hugo reads documentation and durable build evidence; it never executes CAD or verification. Publish `main` at `/` and `dev` at `/dev/` on `gh-pages`. Keep the established Hextra/CAD presentation baseline rather than inventing a second site style.
+Preview is presentation, not verification. When enabled it runs only after every applicable verification stage for that implementation has passed.
+
+Preserve the two released runtime roles; do not add a third verification image.
+
+Physical model dependencies name owner ids. Selection closes over downstream dependents.
+
+Reusable verification belongs in `modules/verification/`; owner-specific built-artifact expectations stay in `models/<id>/verification/`. Optional `models/<id>/tests/` are owner-local source/compiler contract tests and run only with that selected owner; do not move them into `cadlib/tests` unless the contract is genuinely package-wide.
+
+Pages is separate from CAD CI. Hugo reads source metadata and durable build evidence only. Project model purposes into Examples and Verification without duplicating physical owners or generated artifacts. Keep the established Hextra/CAD presentation baseline.
