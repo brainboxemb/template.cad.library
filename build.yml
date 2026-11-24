@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/17-scad-builders
-modules: [ci, builder-pythonscad, builder-pybosl2]
+branch: issue/19-solidcraft-builder
+modules: [ci, builder-solidcraft]
 library: false
-examples: all
+examples: [simple-box, simple-box-solidcraft]
 tasks: [test]
