@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/37-align-ci-build-pages
-modules: [ci, build]
+branch: issue/41-reconcile-plan
+modules: []
 library: false
 models: []
 tasks: [test]
