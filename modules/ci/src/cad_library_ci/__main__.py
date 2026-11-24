@@ -11,6 +11,7 @@ from .runner import execute
 from .selection import changed_selection
 from .examples import discover_examples, select_examples
 from .batch import run_batches
+from .library import library_owner, build_wheel
 
 
 def selection(repo, project, branch, modules):
@@ -45,7 +46,9 @@ def main():
     plan, paths, full = selection(repo, project, branch, modules)
     chosen = select(modules, plan.modules)
     print("Selected modules:", ", ".join(item.id for item in chosen), flush=True)
-    execute(chosen)
+    library = library_owner(repo)
+    print("Selected library:", plan.library, flush=True)
+    execute((*chosen, library) if plan.library else chosen)
     examples = discover_examples(repo, modules)
     explicit = None
     if not full and paths is None:
@@ -56,6 +59,8 @@ def main():
     print("Selected examples:", ", ".join(e.id for e in selected), flush=True)
     output = repo / project.output_root / "qualification"
     output.mkdir(parents=True, exist_ok=True)
+    if plan.library:
+        build_wheel(library, output / "library")
     (output / "build-plan.json").write_text(json.dumps({
         "schema": 1, "source_sha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
         "active": [e.id for e in examples], "selected": [e.id for e in selected], "full": full,

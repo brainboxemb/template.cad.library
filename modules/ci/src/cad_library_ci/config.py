@@ -23,9 +23,10 @@ class BuildSelection:
     branch: str
     modules: tuple[str, ...] | None
     tasks: tuple[str, ...] = ("test",)
+    library: bool = False
 
 def full_selection(branch):
-    return BuildSelection(branch, None)
+    return BuildSelection(branch, None, library=True)
 
 def mapping(path):
     try:
@@ -70,7 +71,10 @@ def load_build(repo, branch):
         raise ConfigError("modules must be all or a list of ids")
     if data.get("tasks") != ["test"]:
         raise ConfigError("baseline supports only task test")
-    return BuildSelection(branch, modules)
+    library = data.get("library", False)
+    if type(library) is not bool:
+        raise ConfigError("library must be a boolean")
+    return BuildSelection(branch, modules, library=library)
 
 def current_branch(repo):
     for key in ("GITHUB_HEAD_REF", "GITHUB_REF_NAME"):

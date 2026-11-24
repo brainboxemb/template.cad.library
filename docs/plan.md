@@ -7,7 +7,7 @@
 
 ## Next
 
-- Wire cadlib packaging/unit tests into CI.
+- #9: qualify independent cadlib unit tests and wheel build.
 - Implement PythonSCAD, pyBOSL2, build123d and SolidCraft incrementally using the two pinned runtime roles.
 - Migrate Forge and other consumers away from the external verification dependency; do not retire the source repository prematurely.
 - Integrate API/reference and example documentation into Hugo; replace the existing custom Forge site during migration.
