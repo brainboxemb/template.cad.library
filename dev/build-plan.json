@@ -1,13 +1,17 @@
 {
   "active": [
     "simple-box",
-    "simple-box-build123d"
+    "simple-box-build123d",
+    "simple-box-pybosl2",
+    "simple-box-pythonscad"
   ],
   "full": true,
   "schema": 1,
   "selected": [
     "simple-box",
-    "simple-box-build123d"
+    "simple-box-build123d",
+    "simple-box-pybosl2",
+    "simple-box-pythonscad"
   ],
-  "source_sha": "731b937ec05ad38154cb3110de274ea50e402491"
+  "source_sha": "3bc496be454cbf4026d0641713f36ee433cd3889"
 }

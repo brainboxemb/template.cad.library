@@ -1,0 +1,9 @@
+{
+  "build_status": "pass",
+  "builder": "builder-pythonscad",
+  "id": "simple-box-pythonscad",
+  "preview_status": "pass",
+  "runtime": "ghcr.io/brainboxemb/cad-reference:v0.3.5",
+  "status": "pass",
+  "verification_status": "pass"
+}
