@@ -3,7 +3,7 @@
 &lt;h2 data-hextra-search-id="build-evidence"&gt;Build evidence&lt;span class="hx:absolute hx:-mt-20" id="build-evidence"&gt;&lt;/span&gt;
 &lt;a href="#build-evidence" class="subheading-anchor" aria-label="Permalink for this section"&gt;&lt;/a&gt;&lt;/h2&gt;&lt;ul&gt;
 &lt;li&gt;Primary implementation: &lt;code&gt;cadquery&lt;/code&gt;&lt;/li&gt;
-&lt;li&gt;Build source: &lt;code&gt;27c38f8ffe9546d207517f8f46b8118de851e345&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;Build source: &lt;code&gt;21f720f2d8cd1591b277f7756fcb16eb1a49b6df&lt;/code&gt;&lt;/li&gt;
 &lt;li&gt;Durable scope: &lt;code&gt;dev&lt;/code&gt;&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;&lt;img src="https://raw.githubusercontent.com/brainboxemb/template.cad.library/build/dev/models/simple-box/model.png" alt="Simple box preview" data-zoomable loading="lazy" /&gt;&lt;/p&gt;
