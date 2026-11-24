@@ -20,6 +20,6 @@ Preserve the two released runtime roles; do not add a third verification image.
 
 Physical model dependencies name owner ids. Selection closes over downstream dependents.
 
-Reusable verification belongs in `modules/verification/`; owner-specific expectations stay in `models/<id>/verification/`.
+Reusable verification belongs in `modules/verification/`; owner-specific built-artifact expectations stay in `models/<id>/verification/`. Optional `models/<id>/tests/` are owner-local source/compiler contract tests and run only with that selected owner; do not move them into `cadlib/tests` unless the contract is genuinely package-wide.
 
 Pages is separate from CAD CI. Hugo reads source metadata and durable build evidence only. Verification-only owners are not public. Keep the established Hextra/CAD presentation baseline.
