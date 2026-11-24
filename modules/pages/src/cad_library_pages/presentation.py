@@ -132,7 +132,7 @@ def implementation_evidence(root, blob_url, raw_url, state):
     """Use only artifacts actually present in this implementation's build."""
     data = {"status": state.get("status") or state.get("verification_status") or "unavailable",
             "previewurl": "", "files": [], "reports": [], "commands": [],
-            "commandurl": "", "images": [], "checks": []}
+            "commandurl": "", "images": [], "checks": [], "visualviews": []}
     if (root / "model.png").is_file():
         data["previewurl"] = f"{raw_url}/model.png"
     for name, label in (("model.stl", "STL"), ("model.step", "STEP"), ("model.sc", "Native model"),
@@ -151,9 +151,40 @@ def implementation_evidence(root, blob_url, raw_url, state):
         relative = report.relative_to(root).as_posix()
         payload = json.loads(report.read_text(encoding="utf-8"))
         for check in payload.get("checks", []):
+            check_evidence = check.get("evidence") or {}
             data["checks"].append({"stage": report.parent.name, "id": check.get("id", ""),
                                    "status": check.get("status", "unavailable"),
-                                   "comparisons": comparison_rows(check.get("evidence") or {})})
+                                   "comparisons": comparison_rows(check_evidence)})
+            visual_view = check_evidence.get("view")
+            visual_paths = set()
+            if isinstance(visual_view, str) and visual_view:
+                images = []
+                for field, label in (
+                    ("actual_image", "Actual"),
+                    ("goal_image", "Goal"),
+                    ("overlay_image", "Overlay"),
+                    ("diff_image", "Diff"),
+                ):
+                    rel = check_evidence.get(field)
+                    if not isinstance(rel, str):
+                        continue
+                    candidate = report.parent / rel
+                    if (
+                        candidate.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".svg"}
+                        and candidate.is_file()
+                        and candidate.resolve().is_relative_to(root.resolve())
+                    ):
+                        image_path = candidate.resolve().relative_to(root.resolve()).as_posix()
+                        images.append({"role": label, "url": f"{raw_url}/{image_path}"})
+                        visual_paths.add(image_path)
+                data["visualviews"].append({
+                    "view": visual_view,
+                    "status": check.get("status", "unavailable"),
+                    "baseline_status": check_evidence.get("baseline_status", "missing"),
+                    "expected_shape_status": check_evidence.get("expected_shape_status", "missing"),
+                    "regression": check_evidence.get("regression"),
+                    "images": images,
+                })
             for artifact in check.get("artifacts", []):
                 rel = artifact.get("path")
                 if not isinstance(rel, str):
@@ -162,10 +193,11 @@ def implementation_evidence(root, blob_url, raw_url, state):
                 if (candidate.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".svg"}
                         and candidate.is_file() and candidate.resolve().is_relative_to(root.resolve())):
                     image_path = candidate.resolve().relative_to(root.resolve()).as_posix()
-                    image = {"label": f"{report.parent.name} / {check.get('id', '')} / {rel}",
-                             "url": f"{raw_url}/{image_path}"}
-                    if image not in data["images"]:
-                        data["images"].append(image)
+                    if image_path not in visual_paths:
+                        image = {"label": f"{report.parent.name} / {check.get('id', '')} / {rel}",
+                                 "url": f"{raw_url}/{image_path}"}
+                        if image not in data["images"]:
+                            data["images"].append(image)
         data["reports"].append({"name": report.parent.name,
                                 "url": f"{blob_url}/{relative}",
                                 "json": json.dumps(payload, ensure_ascii=False, indent=2)})
