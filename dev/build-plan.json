@@ -6,14 +6,8 @@
     "simple-box-pythonscad",
     "simple-box-solidcraft"
   ],
-  "full": true,
+  "full": false,
   "schema": 1,
-  "selected": [
-    "simple-box",
-    "simple-box-build123d",
-    "simple-box-pybosl2",
-    "simple-box-pythonscad",
-    "simple-box-solidcraft"
-  ],
-  "source_sha": "3ced416cd619a36dbb1f85420db2f7b084fbbab2"
+  "selected": [],
+  "source_sha": "dc12bc723a3f93a62963af449a935ee4bd29e184"
 }
