@@ -17,7 +17,6 @@
 - Pages links durable CAD artifacts instead of duplicating them;
 - pull requests run only central `ci`; permanent `dev`/`main` runs use one `build` job and dispatch the independent Pages workflow after durable publication;
 - every source-branch integration is executed through the local `/merge` policy; agents do not select or bypass merge methods;
-- stable release qualification is independent of Pages and is based on exact durable `build/main` evidence plus explicit library qualification.
 
 ## Next
 
