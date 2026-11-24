@@ -3,7 +3,8 @@
     "simple-box",
     "simple-box-build123d",
     "simple-box-pybosl2",
-    "simple-box-pythonscad"
+    "simple-box-pythonscad",
+    "simple-box-solidcraft"
   ],
   "full": true,
   "schema": 1,
@@ -11,7 +12,8 @@
     "simple-box",
     "simple-box-build123d",
     "simple-box-pybosl2",
-    "simple-box-pythonscad"
+    "simple-box-pythonscad",
+    "simple-box-solidcraft"
   ],
-  "source_sha": "3bc496be454cbf4026d0641713f36ee433cd3889"
+  "source_sha": "3ced416cd619a36dbb1f85420db2f7b084fbbab2"
 }
