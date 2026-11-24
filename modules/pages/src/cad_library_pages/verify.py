@@ -79,6 +79,16 @@ def verify(source_root: Path, site: Path, build_scope: Path | None):
                         report = f"{impl}/verification/{stage}/verification.json"
                         if (evidence / report).is_file():
                             expected.append(f"/blob/build/{build_scope.name}/models/{item}/{report}")
+            explanation = html.find("engineering-explanation")
+            if explanation != -1 and explanation < html.find("check-overview"):
+                raise RuntimeError(f"{route}: engineering explanation must follow image/check overview")
+            stages = html.find("model-stages")
+            if stages != -1 and stages < html.find("check-overview"):
+                raise RuntimeError(f"{route}: model stages must follow image/check overview")
+            if "setup.svg" in html:
+                gallery = html[html.find("image-overview"):html.find("check-overview")]
+                if "setup.svg" not in gallery:
+                    raise RuntimeError(f"{route}: expected setup missing from image overview")
             for marker in expected:
                 if marker not in html:
                     raise RuntimeError(f"{route}: missing rendered content: {marker}")

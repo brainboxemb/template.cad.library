@@ -17,7 +17,7 @@ A missing preview or file means that the corresponding artifact is not available
 
 ## Read the source
 
-The complete featured source is followed by a collapsed, expandable published generated command sequence, where applicable. Each independent implementation displays its code next to its own result image, with a consolidated image and check overview after the references.
+The featured SolidCraft/SCPF source follows immediately after the opening imagery. A collapsed generated command sequence follows the source where available. Each independent implementation then displays its code next to its own result image. The consolidated image overview includes the expected setup, native/result previews and published visual-evidence images; the check overview follows it. Background explanation and raw evidence come afterwards.
 
 For example, a centred box in CadQuery can be described as:
 

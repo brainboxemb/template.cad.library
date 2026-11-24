@@ -41,9 +41,13 @@ Relevant historical source: `site/templates/qualification-case.html`,
 | Visual actual/goal/overlay/diff | Present when there is a current visual verification policy and current artifacts. Never relabel historical or ordinary presentation images as a current visual PASS. |
 | Verification checks, geometry evidence, reference notes and raw test files | Retain access to actual checks and provenance, with technical details lower on the page. |
 
-The user clarified that expectation, actual result, engineering explanation,
-primary source/commands and independent reference comparison must form the
-main reading flow. Exact historical Examples and Verification compositions
+The historical audit distinguishes Examples and Verification. The requested
+new reading flow intentionally combines the strongest parts of both:
+featured SolidCraft/expected imagery first, then the complete featured
+SolidCraft/SCPF source, then the generated command sequence in a collapsed
+disclosure, then independent reference source beside each result. Only after
+that come the consolidated image and check overviews. Engineering/background
+material and raw technical evidence follow those primary comparisons. Exact historical Examples and Verification compositions
 are not identical; preserve their distinct purpose rather than blindly
 copying the historical HTML. Use shared components for both views.
 
@@ -118,3 +122,24 @@ values from the published report, including native parameter pairs, body
 envelopes, geometry bounds and saved-design checks where available. No new
 verification decisions are made in Pages; raw report links remain available.
 Historical visual comparison policy migration is still a separate task.
+
+## Exact historical route audit
+
+The generated historical pages were inspected directly, not inferred from
+current templates.
+
+Historical `verification/simple-box/` order is: hero; What this example makes
+with setup diagram and native SolidCraft preview; complete Forge source + API;
+Reference code with one source/result row per PythonSCAD, pyBOSL2, CadQuery and
+build123d; lowering explanation; native SolidCraft measurements/saved-design;
+visual verification grouped by view; collapsed technical checks/raw evidence;
+sources of truth.
+
+Historical `examples/simple-box/` order is: hero; one large model image;
+stages + goal; engineering explanation; Python source and generated command
+sequence; provenance notice.
+
+The template target is not a blind copy of either route. It follows the user
+specified hybrid order: SolidCraft/expected images → featured source → collapsed
+commands → reference source + own result → all images → all checks → background
+and raw evidence. This order is now an explicit rendered-site assertion.
