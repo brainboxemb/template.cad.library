@@ -1176,7 +1176,7 @@ html:not(.dark) .hextra-search-trigger{font-size:.9rem}
   overflow: hidden;
   border: 1px solid var(--cad-line);
   border-radius: 10px;
-  background: var(--cad-panel);
+  background: var(--cad-card);
 }
 .cad-visual-card a {
   display: flex;
