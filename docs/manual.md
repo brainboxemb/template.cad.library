@@ -2,33 +2,79 @@
 
 ## Branches and execution
 
-Temporary branches use prefixes configured in ci.yml. Squash into dev; merge-commit promotion into main; reverse integration only for actual stable-only changes. The owner uses /merge once CI is green. Branch cleanup removes merged temporary branches.
+Temporary branches use prefixes configured in `ci.yml`. Squash into `dev`; merge-commit promotion into `main`; reverse integration only for actual stable-only changes. The owner uses `/merge` once CI is green. Branch cleanup removes merged temporary branches.
 
-Root ci.yml holds stable settings. Root build.yml is an exact work-branch selection:
+Root `ci.yml` holds stable settings. Root `build.yml` is an exact work-branch selection:
 
 ```yaml
 schema: 1
 branch: issue/12-ci-change
 modules: [ci]
+library: false
+examples: []
 tasks: [test]
 ```
 
-Use modules: all for all modules. If the branch does not match, run full. Main and promotion PRs run full. Dev push/dispatch selects paths since the last successful dev push/dispatch CI SHA; missing or non-ancestor baseline falls back to full. Cancelled runs never advance that baseline.
+Use `modules: all` and `examples: all` for full qualification. Set `library: true` to include the consumer library. If the branch does not match, the selection is ignored. `main` and `dev -> main` promotion PRs run full. `dev` push/dispatch selects paths since the last successful `dev` push/dispatch CI SHA; a missing or non-ancestor baseline falls back to full. Cancelled runs never advance that baseline.
+
+## Library owner
+
+`cadlib/` is independent of the internal modules and examples. When selected, CI runs its tests directly from source and builds one wheel from an isolated source copy. The wheel is qualification evidence, not a package release.
+
+Examples may declare `needs: [cadlib]`; those examples are rebuilt when the library changes.
 
 ## Internal modules
 
-Each module has ci.yml, pyproject.toml, src/ and tests/. Discovery uses module-local ci.yml; kind: python; impact: self or full; optional watch paths. Tests execute from source using unittest. CI installs ordinary third-party dependencies declared in pyproject.toml for selected modules only. The verification package is local source, not an external Git dependency. No root test suite. Verification is a normal Python module at modules/verification, selectable by its id; example-specific expectations belong with the example.
+Each module has `ci.yml`, `pyproject.toml`, `src/` and `tests/`. Discovery uses module-local `ci.yml`; there is no central module list. Tests execute from source with `unittest`. CI installs ordinary third-party dependencies declared by selected modules only.
 
-## CAD runtimes
+The integrated `cad_verification` package lives in `modules/verification/`. Example-specific geometry contracts and other expectations remain inside the example.
 
-Root ci.yml pins two immutable images: reference and solidcraft. PythonSCAD, pyBOSL2, CadQuery and build123d use reference; SolidCraft uses solidcraft. Local verification code is used in both roles as appropriate. Engine-neutral verification unit tests run on the host without CAD engines.
+## Standard CAD builders
+
+The template qualifies five builders:
+
+- `builder-pythonscad`;
+- `builder-pybosl2`;
+- `builder-cadquery`;
+- `builder-build123d`;
+- `builder-solidcraft`.
+
+A builder declares its runtime and Python entrypoint in its own `ci.yml`. build123d additionally declares its isolated interpreter. pyBOSL2 declares its dependency on the shared PythonSCAD export adapter.
+
+Builders do not decide verification, Pages publication or selection. They receive one explicit source and write artifacts into that example's output directory.
+
+## Runtime roles
+
+Root `ci.yml` pins exactly two immutable role images from `docker.cad.solidcraft v0.3.5`:
+
+- `reference`: PythonSCAD, pyBOSL2, CadQuery, build123d and the geometry stack;
+- `solidcraft`: SolidCraft 0.48.1 and its native CLI, deliberately without trimesh/scipy.
+
+Builder runtime and verifier runtime are independent capabilities. CI derives a runtime dependency graph from selected examples and starts each required role once.
+
+For ordinary reference-engine examples this is one reference container that builds and verifies the whole selected batch. When SolidCraft is selected, SolidCraft runs first and produces native `.sc`, STL and a native snapshot; the reference runtime then verifies the resulting STL. This remains two runtime images, not a third verification image.
+
+## Verification and previews
+
+`modules/verification/` owns reusable checks and evidence. `modules/preview/` owns deterministic mesh presentation rendering in the reference runtime. A failed verification fails the example. Presentation rendering happens only after verification passes.
+
+SolidCraft already produces a native snapshot during its build, so it does not need the mesh preview adapter for that example.
+
+## Durable output
+
+Successful permanent-branch CI publishes example output to the generated `build` branch with separate `main/` and `dev/` scopes. Incremental `dev` builds preserve untouched example results and their original source SHA while replacing selected examples and pruning removed owners.
+
+Pull requests upload candidate qualification evidence but do not publish generated branches.
 
 ## Pages
 
-Hugo 0.169.0 and Hextra 0.13.0 live in site/. CI dispatches a separate Pages workflow after successful main or dev CI, without waiting. During bootstrap dispatch is skipped until main contains the workflow. Pages independently builds both source scopes and publishes a combined tree to gh-pages, main at / and dev at /dev/. Pull requests verify the site without publishing.
+Hugo 0.169.0 and Hextra 0.13.0 live in `site/`. Pages is dispatched after successful permanent-branch CI and is separate from CAD execution.
 
-Configure repository Pages to serve gh-pages at its root. A token or deployment mechanism that actually triggers GitHub Pages deployment may be required; a GITHUB_TOKEN branch push alone does not guarantee a Pages deployment. Verify the live site before accepting the baseline.
+The generated site combines:
 
-## Future extensions
+- `main` at `/`;
+- `dev` at `/dev/`.
 
-The CAD library (cadlib) and examples are separate owners. Define their selection, verification, artifacts and documentation contracts before migration.
+Hugo consumes authored documentation and durable build evidence. It never executes a CAD engine or verifier. Verification-only fixtures are excluded from the public example catalogue.
+
+The custom example presentation follows the established Hextra/CAD baseline from `exp.2026-015.hugo-cad-site` and `template.cad.model-project`; normal library documentation keeps the native Hextra documentation layout.

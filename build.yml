@@ -1,5 +1,6 @@
 schema: 1
-branch: issue/6-first-builder
-modules: [ci, builder-cadquery, verification, build, pages]
-examples: [simple-box]
+branch: issue/4-standard-builder-contract
+modules: [ci]
+library: false
+examples: []
 tasks: [test]
