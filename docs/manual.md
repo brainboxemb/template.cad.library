@@ -61,7 +61,7 @@ implementations:
     preview: false
 ```
 
-CI selects the owner once and expands all implementations. Builder module changes also select every owner that uses that builder.
+CI selects the owner once and expands all implementations. Builder module changes also select every owner that uses that builder. A model may additionally own `tests/`; those Python tests run only when that physical owner is selected, with `cadlib/src` on `PYTHONPATH`. They are intended for source/compiler contracts and do not replace built-artifact verification stages.
 
 ## Verification stages
 
