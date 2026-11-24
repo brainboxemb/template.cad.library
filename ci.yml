@@ -1,0 +1,16 @@
+schema: 1
+branches:
+  stable: main
+  development: dev
+  temporary_prefixes:
+    - issue/
+    - fix/
+    - feature/
+    - docs/
+    - chore/
+generated:
+  build_branch: build
+  pages_branch: gh-pages
+roots:
+  modules: modules
+  output: build

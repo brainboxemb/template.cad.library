@@ -1,0 +1,5 @@
+schema: 1
+branch: issue/1-base-infrastructure
+modules: all
+tasks:
+  - test
