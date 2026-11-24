@@ -88,7 +88,7 @@ def implementation_evidence(root, blob_url, raw_url, state):
     """Use only artifacts actually present in this implementation's build."""
     data = {"status": state.get("status") or state.get("verification_status") or "unavailable",
             "previewurl": "", "files": [], "reports": [], "commands": [],
-            "commandurl": ""}
+            "commandurl": "", "images": [], "checks": []}
     if (root / "model.png").is_file():
         data["previewurl"] = f"{raw_url}/model.png"
     for name, label in (("model.stl", "STL"), ("model.step", "STEP"), ("model.sc", "Native model"),
@@ -105,7 +105,23 @@ def implementation_evidence(root, blob_url, raw_url, state):
         reports = [legacy]
     for report in reports:
         relative = report.relative_to(root).as_posix()
+        payload = json.loads(report.read_text(encoding="utf-8"))
+        for check in payload.get("checks", []):
+            data["checks"].append({"stage": report.parent.name, "id": check.get("id", ""),
+                                   "status": check.get("status", "unavailable")})
+            for artifact in check.get("artifacts", []):
+                rel = artifact.get("path")
+                if not isinstance(rel, str):
+                    continue
+                candidate = report.parent / rel
+                if (candidate.suffix.lower() in {".png", ".jpg", ".jpeg", ".webp", ".svg"}
+                        and candidate.is_file() and candidate.resolve().is_relative_to(root.resolve())):
+                    image_path = candidate.resolve().relative_to(root.resolve()).as_posix()
+                    image = {"label": f"{report.parent.name} / {check.get('id', '')} / {rel}",
+                             "url": f"{raw_url}/{image_path}"}
+                    if image not in data["images"]:
+                        data["images"].append(image)
         data["reports"].append({"name": report.parent.name,
                                 "url": f"{blob_url}/{relative}",
-                                "json": json.dumps(json.loads(report.read_text(encoding="utf-8")), ensure_ascii=False, indent=2)})
+                                "json": json.dumps(payload, ensure_ascii=False, indent=2)})
     return data

@@ -99,3 +99,16 @@ Examples and Verification desktop/mobile screenshots; verify links, route
 order, absence of fabricated evidence and durable artifact ownership.
 Stable/development public route checks and user visual acceptance remain
 separate from successful Hugo rendering.
+
+## Presentation order clarification
+
+The featured SolidCraft snapshot comes first, alongside the separately labelled
+expected setup. Its source is immediately followed by a collapsed generated
+command sequence, then independent source/image rows, then a consolidated image
+and check overview and raw report details. The builder-produced native
+`model.png` is used directly, with no fallback to owner-level STL preview.
+For the template's simple-box, `model.yml.presentation_primary: solidcraft`
+selects the presentation subject without changing `ci.yml.primary: cadquery`.
+For Forge, the default SCPF build primary already identifies the native subject.
+Verification report image artifacts are displayed only when present, preserving
+stage/check provenance. An ordinary model preview is not a visual comparison.

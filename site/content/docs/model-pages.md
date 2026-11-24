@@ -11,13 +11,13 @@ Use [Examples](../../examples/) to explore practical models or [Verification](..
 
 ## Inspect the geometry
 
-The expected setup diagram describes declared geometry requirements. The actual result shows the published primary implementation preview. The two are distinct: a conceptual envelope is not a verification render. Published files are linked below the build evidence.
+The featured result shows the published implementation preview; native SolidCraft builders supply a snapshot of the saved native model rather than an STL rendering. The expected setup diagram describes declared geometry requirements. The two are distinct: a conceptual envelope is not a verification render. Published files are linked below the build evidence.
 
 A missing preview or file means that the corresponding artifact is not available in the published build.
 
 ## Read the source
 
-The complete primary source is followed by the published generated command sequence, where applicable. Each independent implementation displays its code next to its own result image, with verification details below.
+The complete featured source is followed by a collapsed, expandable published generated command sequence, where applicable. Each independent implementation displays its code next to its own result image, with a consolidated image and check overview after the references.
 
 For example, a centred box in CadQuery can be described as:
 

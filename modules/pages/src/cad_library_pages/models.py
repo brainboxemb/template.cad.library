@@ -98,9 +98,14 @@ def prepare_models(source_root: Path, site: Path, build_scope: Path | None):
 
         seen.add(item)
         title = str(meta.get("title", item))
+        implementations = ci.get("implementations", [])
+        featured = meta.get("presentation_primary", ci.get("primary", ""))
+        if implementations and featured not in {i["id"] for i in implementations}:
+            raise ValueError(f"invalid presentation_primary: {model_yml}")
         params = {
             "model": meta,
-            "primary": ci.get("primary", ""),
+            "primary": featured,
+            "buildprimary": ci.get("primary", ""),
             "status": "unavailable",
             "previewurl": "",
             "files": [],
@@ -112,6 +117,8 @@ def prepare_models(source_root: Path, site: Path, build_scope: Path | None):
                 raise ValueError(f"missing or unsafe model source: {source}")
             params["sources"].append({
                 "id": implementation["id"],
+                "builder": implementation.get("builder", ""),
+                "native": implementation.get("builder") in ("builder-solidcraft", "builder-scpf") and implementation.get("preview") is False,
                 "path": implementation["source"],
                 "lang": {".py": "python", ".json": "json", ".scad": "openscad"}.get(source.suffix, "text"),
                 "content": source.read_text(encoding="utf-8"),
@@ -128,7 +135,7 @@ def prepare_models(source_root: Path, site: Path, build_scope: Path | None):
                 raise ValueError(f"invalid published model evidence: {item}")
             revision = json.loads((evidence / "source.json").read_text())["source_sha"]
             primary = result.get("primary")
-            params.update(status="pass", primary=primary)
+            params.update(status="pass", buildprimary=primary)
             owner_path = f"models/{item}"
             lines += [
                 f"- Primary implementation: `{primary}`",
@@ -136,8 +143,8 @@ def prepare_models(source_root: Path, site: Path, build_scope: Path | None):
                 f"- Durable scope: `{namespace}`",
                 "",
             ]
-            if (evidence / "model.png").is_file():
-                params["previewurl"] = f"{raw_base}{owner_path}/model.png"
+            # The owner-level image may belong to a different build primary.
+            # Never use it as a fallback for the featured implementation.
             for name, label in (
                 ("model.stl", "STL"), ("model.step", "STEP"),
                 ("model.sc", "SolidCraft .sc"), ("solidcraft.json", "Commands"),
@@ -153,6 +160,8 @@ def prepare_models(source_root: Path, site: Path, build_scope: Path | None):
                     f"{raw_base}{owner_path}/{impl_id}",
                     result.get("implementations", {}).get(impl_id, {}),
                 ))
+                if impl_id == featured:
+                    params["previewurl"] = source["previewurl"]
             for impl_id, state in sorted(result.get("implementations", {}).items()):
                 if not isinstance(state, dict):
                     raise ValueError(f"invalid implementation evidence: {impl_id}")

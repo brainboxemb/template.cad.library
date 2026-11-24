@@ -16,19 +16,21 @@
     <h2 class="cad-section-title">What this model makes</h2>
     {{ with $m.description }}<p class="cad-model-description">{{ . }}</p>{{ end }}
     <div class="cad-model-overview">
+      <div class="cad-preview-panel" id="featured-result">
+        {{ range .Params.sources }}{{ if eq .id $primary }}
+        <h3 class="cad-section-subtitle">{{ if .native }}SolidCraft native snapshot{{ else }}Actual result — {{ .id }}{{ end }}</h3>
+        <div class="cad-preview">
+          {{ with .previewurl }}<a href="{{ . }}" class="cad-preview-link"><img src="{{ . }}" alt="{{ $.Title }} published {{ $primary }} result"></a>{{ else }}<div class="cad-preview-empty">No published {{ if .native }}native snapshot{{ else }}model preview{{ end }} is available.</div>{{ end }}
+        </div>
+        <p class="cad-section-help">{{ if .native }}Snapshot of the saved native SolidCraft model, not an STL render.{{ else }}Published implementation preview.{{ end }}</p>
+        {{ end }}{{ end }}
+      </div>
       <div class="cad-preview-panel">
         <h3 class="cad-section-subtitle">Expected setup</h3>
         <div class="cad-preview">
           {{ with .Resources.Get "setup.svg" }}<a href="{{ .RelPermalink }}" class="cad-preview-link"><img src="{{ .RelPermalink }}" alt="{{ $.Title }} expected setup diagram"></a>{{ else }}<div class="cad-preview-empty">No declared setup diagram is available.</div>{{ end }}
         </div>
         {{ with .Params.expectationsource }}<p class="cad-section-help">{{ . }}. Conceptual projection, not verification output.</p>{{ end }}
-      </div>
-      <div class="cad-preview-panel">
-        <h3 class="cad-section-subtitle">Actual result — {{ $primary }}</h3>
-        <div class="cad-preview">
-          {{ with .Params.previewurl }}<a href="{{ . }}" class="cad-preview-link"><img src="{{ . }}" alt="{{ $.Title }} actual primary result"></a>{{ else }}<div class="cad-preview-empty">No published model preview is available.</div>{{ end }}
-        </div>
-        <p class="cad-section-help">Published primary implementation preview.</p>
       </div>
     </div>
   </section>
@@ -42,13 +44,15 @@
   </section>
   {{ end }}{{ end }}
   {{ range .Params.sources }}{{ if .commands }}
-  <section class="cad-code-section cad-command-section" data-implementation="{{ .id }}">
-    <h2 class="cad-section-title">Generated command sequence — {{ .id }}</h2>
+  <details class="cad-code-section cad-command-section cad-collapsible" data-implementation="{{ .id }}">
+    <summary><span class="cad-section-title cad-collapsible-title">Generated command sequence — {{ .id }} ({{ len .commands }})</span></summary>
+    <div class="cad-collapsible-body">
     <p class="cad-section-help"><a href="{{ .commandurl }}">Open published command JSON</a></p>
     <ol class="cad-command-sequence">
       {{ range .commands }}<li class="cad-command-step"><h3 class="cad-command-name"><code>{{ .name }}</code></h3><pre class="cad-command-json"><code>{{ .json }}</code></pre></li>{{ end }}
     </ol>
-  </section>
+    </div>
+  </details>
   {{ end }}{{ end }}
   <section class="cad-section" id="reference-code">
     <h2 class="cad-section-title">Reference code</h2>
@@ -57,10 +61,30 @@
     {{ end }}{{ end }}
     {{ if le (len .Params.sources) 1 }}<p>No independent implementation is declared.</p>{{ end }}
   </section>
+  <section class="cad-panel" id="image-overview">
+    <h2 class="cad-section-title">Image overview</h2>
+    <div class="cad-reference-grid cad-evidence-gallery">
+      {{ range .Params.sources }}
+      {{ $source := . }}
+      {{ with .previewurl }}<figure class="cad-reference"><strong>{{ $source.id }} — {{ if $source.native }}native snapshot{{ else }}model preview{{ end }}</strong><a href="{{ . }}"><img src="{{ . }}" alt="{{ $source.id }} published preview"></a></figure>{{ end }}
+      {{ range .images }}<figure class="cad-reference"><strong>{{ $source.id }} — {{ .label }}</strong><a href="{{ .url }}"><img src="{{ .url }}" alt="{{ .label }}"></a></figure>{{ end }}
+      {{ end }}
+    </div>
+    <p class="cad-section-help">Only images present in the published build are displayed. Presentation previews are not visual verification results.</p>
+  </section>
+  <section class="cad-panel" id="check-overview">
+    <h2 class="cad-section-title">Verification checks</h2>
+    {{ range .Params.sources }}
+    <h3 class="cad-section-subtitle">{{ .id }} — {{ .status | default "unavailable" }}</h3>
+    <dl class="cad-verification-grid">
+      {{ range .checks }}<dt>{{ .stage }} / {{ .id }}</dt><dd><strong>{{ .status }}</strong></dd>{{ else }}<dt>Checks</dt><dd>No published check results.</dd>{{ end }}
+    </dl>
+    {{ end }}
+  </section>
   <section class="cad-panel cad-verification-panel" id="build-verification">
     <h2 class="cad-section-title">Build and verification</h2>
     <div class="content">{{ .Content }}</div>
-    {{ range .Params.sources }}{{ if eq .id $primary }}{{ partial "cad/implementation-reports.html" . }}{{ end }}{{ end }}
+    {{ range .Params.sources }}<h3 class="cad-section-subtitle">{{ .id }}</h3>{{ partial "cad/implementation-reports.html" . }}{{ end }}
     <h3 class="cad-section-subtitle">Published files</h3>
     <div class="cad-links cad-file-links">{{ range .Params.files }}<a href="{{ .url }}">{{ .label }}</a>{{ else }}<p>No published build files.</p>{{ end }}</div>
   </section>
