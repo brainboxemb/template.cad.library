@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/4-standard-builder-contract
-modules: [ci]
+branch: issue/23-model-owners
+modules: [ci, build, pages]
 library: false
-examples: []
+models: [simple-box]
 tasks: [test]
