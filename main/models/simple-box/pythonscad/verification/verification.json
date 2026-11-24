@@ -52,5 +52,5 @@
   "schema": "cad-verification",
   "schema_version": 1,
   "status": "pass",
-  "verification_id": "simple-box--pythonscad"
+  "verification_id": "simple-box-pythonscad-geometry"
 }
