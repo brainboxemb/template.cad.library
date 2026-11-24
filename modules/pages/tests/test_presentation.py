@@ -80,5 +80,58 @@ class PresentationTests(unittest.TestCase):
             self.assertEqual(missing["status"], "unavailable")
 
 
+    def test_visual_verification_stays_grouped_by_view_and_role(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            stage = root / "verification/visual"
+            view = stage / "visual/front"
+            view.mkdir(parents=True)
+            for name in ("actual.png", "goal.png", "overlay.png", "diff.png"):
+                (view / name).write_bytes(name.encode())
+            (stage / "verification.json").write_text(json.dumps({
+                "metadata": {"kind": "solidcraft-visual"},
+                "checks": [{
+                    "id": "front",
+                    "status": "pass",
+                    "evidence": {
+                        "view": "front",
+                        "actual_image": "visual/front/actual.png",
+                        "goal_image": "visual/front/goal.png",
+                        "overlay_image": "visual/front/overlay.png",
+                        "diff_image": "visual/front/diff.png",
+                        "baseline_status": "pass",
+                        "expected_shape_status": "pass",
+                        "regression": {
+                            "mean_absolute_difference": 0.001,
+                            "changed_pixel_fraction": 0.0,
+                        },
+                    },
+                    "artifacts": [
+                        {"path": "visual/front/actual.png"},
+                        {"path": "visual/front/goal.png"},
+                        {"path": "visual/front/overlay.png"},
+                        {"path": "visual/front/diff.png"},
+                    ],
+                }],
+            }))
+            data = implementation_evidence(
+                root,
+                "https://example.org/blob/scpf",
+                "https://example.org/raw/scpf",
+                {"status": "pass"},
+            )
+            self.assertEqual(len(data["visualviews"]), 1)
+            visual = data["visualviews"][0]
+            self.assertEqual(visual["view"], "front")
+            self.assertEqual(visual["status"], "pass")
+            self.assertEqual(visual["baseline_status"], "pass")
+            self.assertEqual(visual["expected_shape_status"], "pass")
+            self.assertEqual(
+                [image["role"] for image in visual["images"]],
+                ["Actual", "Goal", "Overlay", "Diff"],
+            )
+            self.assertEqual(data["images"], [])
+
+
 if __name__ == "__main__":
     unittest.main()
