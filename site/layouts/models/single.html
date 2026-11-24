@@ -28,8 +28,9 @@
     </aside>
   </div>
   {{ with .Params.background }}<section class="cad-panel cad-background"><h2 class="cad-section-title">Background</h2><div class="cad-rich-text">{{ $.RenderString . }}</div></section>{{ end }}
+  {{ $primary := .Params.primary }}
   {{ range .Params.sources }}
-  <details class="cad-code-section cad-collapsible">
+  <details class="cad-code-section cad-collapsible"{{ if eq .id $primary }} open{{ end }}>
     <summary><span class="cad-section-title cad-collapsible-title">{{ .id }} source</span></summary>
     <p class="cad-section-help">Displayed source; the built revision is recorded below.</p>
     <div class="cad-collapsible-body">{{ partial "cad/codeblock.html" (dict "lang" .lang "content" .content "label" .path) }}</div>

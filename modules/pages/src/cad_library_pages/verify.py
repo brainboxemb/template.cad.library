@@ -13,7 +13,7 @@ def verify(source_root: Path, site: Path, build_scope: Path | None):
             raise RuntimeError(f"missing generated route: {path}")
         return unescape(path.read_text(encoding="utf-8"))
 
-    for route, marker in (("", "cad-home"), ("docs", "Documentation"),
+    for route, marker in (("", "cad-home"), ("docs", "Documentation"), ("docs/model-pages", "Understand verification"),
                           ("examples", "cad-model-grid"), ("verification", "cad-model-grid")):
         if marker not in read(route):
             raise RuntimeError(f"missing layout marker for {route}: {marker}")

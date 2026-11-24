@@ -15,7 +15,7 @@ def capture(site: Path, base_path: str, output: Path):
     chrome = next((p for n in ("google-chrome", "google-chrome-stable", "chromium") if (p := shutil.which(n))), None)
     if not chrome:
         raise RuntimeError("Chrome/Chromium is required")
-    routes = [("home", ""), ("documentation", "docs/"), ("examples", "examples/"), ("verification", "verification/")]
+    routes = [("home", ""), ("documentation", "docs/"), ("documentation-model-pages", "docs/model-pages/"), ("examples", "examples/"), ("verification", "verification/")]
     for section in ("examples", "verification"):
         routes.extend((f"{section}-{p.parent.name}", f"{section}/{p.parent.name}/")
                       for p in sorted((site / section).glob("*/index.html"))[:1])
