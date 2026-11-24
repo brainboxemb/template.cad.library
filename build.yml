@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/14-model-preview
-modules: [ci, preview]
+branch: issue/11-build123d
+modules: [ci, builder-build123d]
 library: false
-examples: [simple-box]
+examples: [simple-box, simple-box-build123d]
 tasks: [test]

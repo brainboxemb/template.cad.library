@@ -25,6 +25,7 @@ class Example:
     watch_prefix: str
     preview_entry: str | None = None
     preview_adapter: str | None = None
+    engine_python: str | None = None
 
 
 def owned_file(root, value):
@@ -70,6 +71,9 @@ def discover_examples(repo, modules):
         runtime = b.get("runtime")
         if not isinstance(runtime, str) or not _ID.fullmatch(runtime):
             raise ConfigError(f"invalid runtime for {builder}")
+        engine_python = b.get("python")
+        if engine_python is not None and (not isinstance(engine_python, str) or not Path(engine_python).is_absolute() or ".." in Path(engine_python).parts):
+            raise ConfigError(f"invalid runtime interpreter for {builder}")
         needs = data.get("needs", [])
         if not isinstance(needs, list) or any(n != "cadlib" and n not in by_id for n in needs):
             raise ConfigError(f"invalid dependencies: {path}")
@@ -82,7 +86,7 @@ def discover_examples(repo, modules):
             needs = [*needs, preview["module"]]
         examples.append(Example(item_id, directory, builder, owned_file(directory, data.get("source")),
             verifier, v["adapter"], owned_file(directory, v.get("definition")), runtime,
-            b["entrypoint"], vc["entrypoint"], tuple(dict.fromkeys([builder, verifier, *needs])), directory.relative_to(repo).as_posix() + "/", preview_entry, preview_adapter))
+            b["entrypoint"], vc["entrypoint"], tuple(dict.fromkeys([builder, verifier, *needs])), directory.relative_to(repo).as_posix() + "/", preview_entry, preview_adapter, engine_python))
         seen.add(item_id)
     return tuple(examples)
 
