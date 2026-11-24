@@ -1,5 +1,7 @@
 """Project CI entrypoint."""
 import os
+import json
+import subprocess
 from pathlib import Path
 from urllib.error import URLError
 from .config import current_branch, full_selection, load_build, load_project, mapping, ConfigError
@@ -52,7 +54,13 @@ def main():
             raise ConfigError("examples must be all or a list of ids")
     selected = select_examples(examples, explicit=explicit, paths=paths, selected_modules=[m.id for m in chosen], full=full)
     print("Selected examples:", ", ".join(e.id for e in selected), flush=True)
-    run_batches(repo, project, modules, selected, repo / project.output_root / "qualification")
+    output = repo / project.output_root / "qualification"
+    output.mkdir(parents=True, exist_ok=True)
+    (output / "build-plan.json").write_text(json.dumps({
+        "schema": 1, "source_sha": subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip(),
+        "active": [e.id for e in examples], "selected": [e.id for e in selected], "full": full,
+    }, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    run_batches(repo, project, modules, selected, output)
 
 
 if __name__ == "__main__":

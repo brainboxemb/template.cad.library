@@ -44,8 +44,36 @@ jobs:
           path: build/qualification/
           if-no-files-found: ignore
 
-  dispatch-pages:
+  publish-build:
     needs: verify
+    if: github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'dev')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - run: python -m pip install PyYAML==6.0.2
+      - uses: actions/download-artifact@v8
+        with:
+          name: cad-qualification
+          path: build/qualification/
+      - name: Publish build scope
+        env:
+          PYTHONPATH: modules/build/src
+        run: >-
+          python -m cad_library_build.publish
+          --candidate build/qualification
+          --source-ref "${{ github.ref_name }}"
+          --source-sha "${{ github.sha }}"
+
+  dispatch-pages:
+    needs: publish-build
     if: github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'dev')
     runs-on: ubuntu-latest
     permissions:
