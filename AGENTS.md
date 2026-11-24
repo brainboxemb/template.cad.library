@@ -4,6 +4,29 @@ Read `docs/plan.md`, `docs/design.md` and `docs/manual.md` before changing the r
 
 Work from a temporary branch based on `dev`. Set `build.yml.branch` to the actual branch and select the necessary library, modules and **physical model owners**. Squash temporary branches into `dev`; promote `dev` to `main` with a merge commit.
 
+## Mandatory merge execution rule
+
+This repository deliberately does **not** let an agent choose the merge method.
+
+For every source-branch integration:
+
+- short-lived branch -> `dev`;
+- `dev` -> `main`;
+- exceptional `main` -> `dev`;
+
+an agent MUST post `/merge` on the pull request and let
+`.github/workflows/merge-policy.yml` perform the merge.
+
+An agent MUST NOT:
+
+- call GitHub's direct merge API;
+- enable or use auto-merge;
+- use a UI/manual merge fallback;
+- manually choose squash, merge or rebase.
+
+If `/merge` fails, stop the integration and repair the merge-policy path.
+Never bypass the policy.
+
 The repository root for CAD ownership is `models/`, matching `template.cad.model-project`. Do not reintroduce `examples/` as an execution owner root.
 
 One `models/<id>/` directory is one physical owner. Multiple engine implementations belong under that owner and are declared in its `ci.yml`. Do not create sibling owners such as `model-build123d` or `model-solidcraft` solely to represent engines.

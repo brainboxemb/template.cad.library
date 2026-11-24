@@ -15,6 +15,18 @@ tasks: [test]
 
 Use `modules: all` or `models: all` for full selection. `main` and `dev -> main` promotions run full. Permanent `dev` runs select changes since the last successful integration run; missing history falls back to full.
 
+### Merge execution
+
+The merge shape is policy-owned, not agent-selected. For every source-branch integration, post `/merge` on the pull request and let `.github/workflows/merge-policy.yml` execute the merge.
+
+The policy chooses:
+
+- short-lived branch -> `dev`: squash;
+- `dev` -> `main`: merge commit;
+- exceptional `main` -> `dev`: merge commit.
+
+Do not use the direct GitHub merge API, auto-merge, a UI/manual fallback, or manual squash/merge/rebase selection. If `/merge` fails, repair the policy path rather than bypassing it.
+
 ## Library owner
 
 `cadlib/` is independent of model owners and internal modules. Selecting the library runs its source tests and builds one qualification wheel. This is not a release.

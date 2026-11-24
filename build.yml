@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/12-site-layout
-modules: [pages]
+branch: issue/38-mandatory-merge-policy
+modules: [merge-policy]
 library: false
 models: []
 tasks: [test]
