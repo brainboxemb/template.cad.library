@@ -7,8 +7,8 @@
 
 ## Next
 
-- Wire cadlib packaging/unit tests into CI and qualify the external verification dependency and integration tests. The verification module itself uses normal module discovery and selection.
-- Implement standard Python/OpenSCAD, BOSL, CadQuery, build123d and SolidCraft builders; confirm runtime/toolchain pins and qualify incrementally.
+- Wire cadlib packaging/unit tests into CI and qualify the integrated local verification code and functional tests.
+- Implement standard PythonSCAD, pyBOSL2, CadQuery, build123d and SolidCraft builders using the two pinned runtime roles and qualify incrementally.
 - Integrate examples, explicit verification actions, example-owned expectations and generated build scopes.
-- Decide whether the generic verification library remains independent or is reorganized; preserve engine-neutral verification.
+- Migrate Forge and other consumers away from the external verification dependency; do not retire the source repository prematurely.
 - Integrate API/reference and example documentation into Hugo; replace the existing custom Forge site during migration.

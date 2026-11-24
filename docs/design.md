@@ -36,8 +36,8 @@ Provide separate, tested engine adapters for:
 
 | Builder | Input |
 | --- | --- |
-| python-openscad | Python-authored OpenSCAD; exact authoring tool/runtime to be confirmed |
-| bosl | OpenSCAD source using BOSL/BOSL2; exact supported version to be confirmed |
+| pythonscad | PythonSCAD 1.1.2 source |
+| pybosl2 | PythonSCAD with pyBOSL2 at the qualified runtime revision |
 | cadquery | Python CadQuery model |
 | build123d | Python build123d model |
 | solidcraft | Native SolidCraft source/commands |
@@ -46,20 +46,30 @@ A CAD builder builds an explicit source with an explicit qualified runtime and p
 
 Use the existing CAD model template and `lib.py.cad.ci` implementations as references. Standard engine builders will be implemented and qualified one at a time; no builder is claimed available solely because it appears in this design.
 
+## Runtime separation
+
+Root ci.yml pins two immutable images from docker.cad.solidcraft v0.3.5:
+
+- reference: PythonSCAD 1.1.2, pyBOSL2 commit d4279910c12435ed7224b3406616e495db1c96ec, CadQuery 2.8.0, build123d 0.12.0 (separate interpreter /opt/build123d/bin/python).
+- solidcraft: SolidCraft 0.48.1 and Pillow, deliberately without the heavy reference geometry stack.
+
+Builders share compatible runtime batches. Local verification source is mounted into the appropriate runtime when needed. Do not combine the images or add a third verification image. CADCraft is already in the reference runtime but no CADCraft builder is in scope yet.
+
 ## Verification
 
-- `lib.py.cad.verification` is the initial dependency for generic comparisons, evidence, reports and engine-specific verification adapters.
-- `modules/verification/` owns reusable consumer-specific verification behavior as a normal independently selectable Python module. Organize checks and adapters inside its package; split into additional sibling modules only if a concrete independent ownership or execution need arises.
-- `examples/<id>/verification/` owns the specific expectations, tolerances, views and mutation definitions. It is data, not a second verification library.
-- A verifier receives built artifacts or explicit measured values and explicit expectations. It does not rebuild a model, publish pages or implement CI selection. Generic pass/fail/error and evidence mechanics remain in the verification library.
-- Module selection and unit tests use the existing Python-module mechanism. Library and example selection, dependency propagation, external verification dependency installation and CAD verification task execution will be implemented explicitly.
+- modules/verification/ owns generic comparisons, evidence, reports and CAD-specific adapters as a normal independent Python module.
+- The existing cad_verification package and functional tests are local source. No external verification package or Git checkout is required.
+- Organize reusable checks and adapters inside the module; split only when concrete independent ownership requires it. Engine-neutral APIs must remain independent of Forge.
+- examples/<id>/verification/ owns model-specific expectations, tolerances, views and mutations.
+- A verifier receives built artifacts or explicit measurements and explicit expectations. It does not schedule builds or publish Pages.
+- CI installs ordinary third-party dependencies declared by selected modules only, then tests the module directly from source. Real CAD verification tasks use the relevant runtime image.
 
-The concrete `modules/verification/` starter demonstrates a consumer check that delegates to the existing verification package. The module is registered with normal CI discovery. Unit tests verify the delegation boundary without external dependencies; integration tests exercise the pinned external package when installed, otherwise explicitly skip. Wiring that dependency into CI remains open. This is not a qualified CAD verification adapter.
+The source baseline is lib.py.cad.verification v0.16.0 at c7c145b7be0c602724e8cca874ef29990baaad1e, matching the existing Forge pin. The separate repository release-policy test is excluded because internal modules follow their containing repository's release policy. The import-boundary test explicitly points its isolated interpreter at local module source.
 
 ## Dependency boundary
 
-Whether the generic verification library remains its own repository or is consolidated into another distribution is an independent design decision. Do not copy it into Forge or duplicate it inside the template as a shortcut. In either case, engine-neutral verification must remain usable without importing Forge.
+The old verification repository is not modified or deleted. Migrate other consumers before retiring redundant ownership. After Forge adopts this template, its verification code is local and no longer depends on the external repository.
 
 ## Pages
 
-Hugo consumes authored documentation and eventually generated example/reference evidence. It never runs a CAD builder or a verifier. Published examples are distinct from verification-only fixtures; when both purposes apply, use an explicit model metadata purpose declaration.
+Hugo consumes authored documentation and eventually generated example/reference evidence. It never runs a CAD builder or verifier. Use explicit model metadata purpose declarations to distinguish published examples and verification fixtures.

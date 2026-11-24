@@ -17,7 +17,11 @@ Use modules: all for all modules. If the branch does not match, run full. Main a
 
 ## Internal modules
 
-Each module has ci.yml, pyproject.toml, src/ and tests/. Discovery uses module-local ci.yml; kind: python; impact: self or full; optional watch paths. Tests execute from source using unittest. No root test suite. Verification is a normal Python module at modules/verification, selectable by its id; example-specific expectations belong with the example.
+Each module has ci.yml, pyproject.toml, src/ and tests/. Discovery uses module-local ci.yml; kind: python; impact: self or full; optional watch paths. Tests execute from source using unittest. CI installs ordinary third-party dependencies declared in pyproject.toml for selected modules only. The verification package is local source, not an external Git dependency. No root test suite. Verification is a normal Python module at modules/verification, selectable by its id; example-specific expectations belong with the example.
+
+## CAD runtimes
+
+Root ci.yml pins two immutable images: reference and solidcraft. PythonSCAD, pyBOSL2, CadQuery and build123d use reference; SolidCraft uses solidcraft. Local verification code is used in both roles as appropriate. Engine-neutral verification unit tests run on the host without CAD engines.
 
 ## Pages
 

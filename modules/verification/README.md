@@ -1,12 +1,7 @@
 # Verification module
 
-A normal independent Python capability. Reusable project-specific checks and adapters belong in this module; model-specific expectations belong with the example. Generic comparison and evidence mechanics are delegated to the existing CAD verification library.
+The CAD verification implementation is local to this repository. Its Python import name remains cad_verification. It owns shared assertions, comparisons, geometry, visual evidence, reports and SolidCraft verification adapters. Example-specific expectations remain with the example.
 
-The starter unit tests run through normal module CI. To exercise the actual pinned external dependency locally:
+Source baseline: brainboxemb/lib.py.cad.verification v0.16.0, commit c7c145b7be0c602724e8cca874ef29990baaad1e (the existing Forge pin). Functional source and tests are imported; the standalone release-policy test is not applicable to this internal module. No external verification Git dependency remains. Only ordinary third-party Python dependencies are declared.
 
-```sh
-python -m pip install -e modules/verification
-python -m unittest discover -s modules/verification/tests -v
-```
-
-The external-package integration tests explicitly skip when the dependency is not installed. Qualification of that dependency in CI is tracked in #4.
+Tests use normal module discovery and run directly from source. Actual CAD verification will use the two existing CAD runtime roles, not a separate verification image.
