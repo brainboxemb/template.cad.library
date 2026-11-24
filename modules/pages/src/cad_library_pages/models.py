@@ -5,6 +5,8 @@ import re
 import tomllib
 import yaml
 
+from .presentation import expected_setup, setup_svg, implementation_evidence
+
 
 _ID = re.compile(r"[a-z0-9][a-z0-9_-]*")
 
@@ -144,6 +146,13 @@ def prepare_models(source_root: Path, site: Path, build_scope: Path | None):
                 if (evidence / name).is_file():
                     params["files"].append({"label": label, "url": f"{blob_base}{owner_path}/{name}"})
             lines += ["### Implementations", ""]
+            for source in params["sources"]:
+                impl_id = source["id"]
+                source.update(implementation_evidence(
+                    evidence / impl_id, f"{blob_base}{owner_path}/{impl_id}",
+                    f"{raw_base}{owner_path}/{impl_id}",
+                    result.get("implementations", {}).get(impl_id, {}),
+                ))
             for impl_id, state in sorted(result.get("implementations", {}).items()):
                 if not isinstance(state, dict):
                     raise ValueError(f"invalid implementation evidence: {impl_id}")
@@ -178,10 +187,15 @@ def prepare_models(source_root: Path, site: Path, build_scope: Path | None):
         else:
             lines.append("No published build evidence is available for this source scope.")
 
+        bodies, expectation_source = expected_setup(owner, ci, evidence)
+        diagram = setup_svg(bodies)
+        params["expectationsource"] = expectation_source
         for purpose in dict.fromkeys(purposes):
             section = "examples" if purpose == "example" else "verification"
             page = site / "content" / section / item / "index.md"
             page.parent.mkdir(parents=True, exist_ok=True)
+            if diagram:
+                (page.parent / "setup.svg").write_text(diagram, encoding="utf-8")
             data = {"title": title, "type": "models", "weight": meta.get("priority", 100),
                     "params": params}
             if purpose == ("example" if "example" in purposes else "verification"):

@@ -11,13 +11,13 @@ Use [Examples](../../examples/) to explore practical models or [Verification](..
 
 ## Inspect the geometry
 
-The model preview shows the published result of the primary implementation. Where available, the Files panel links to the corresponding STL, native model and other build artifacts.
+The expected setup diagram describes declared geometry requirements. The actual result shows the published primary implementation preview. The two are distinct: a conceptual envelope is not a verification render. Published files are linked below the build evidence.
 
 A missing preview or file means that the corresponding artifact is not available in the published build.
 
 ## Read the source
 
-The primary implementation is open by default. Expand the other source sections to compare how different CAD engines construct the same model.
+The complete primary source is followed by the published generated command sequence, where applicable. Each independent implementation displays its code next to its own result image, with verification details below.
 
 For example, a centred box in CadQuery can be described as:
 
