@@ -77,6 +77,10 @@ def discover_examples(repo, modules):
         needs = data.get("needs", [])
         if not isinstance(needs, list) or any(n != "cadlib" and n not in by_id for n in needs):
             raise ConfigError(f"invalid dependencies: {path}")
+        builder_needs = b.get("needs", [])
+        if not isinstance(builder_needs, list) or not all(isinstance(n, str) and n in by_id for n in builder_needs):
+            raise ConfigError(f"invalid builder dependencies: {builder}")
+        needs = [*needs, *builder_needs]
         preview_entry = preview_adapter = None
         if (preview := data.get("preview")) is not None:
             if not isinstance(preview, dict) or not isinstance(preview.get("module"), str) or not isinstance(preview.get("adapter"), str):
