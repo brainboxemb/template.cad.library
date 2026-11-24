@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/23-model-owners
-modules: [ci, build, pages]
+branch: issue/25-multi-stage-verification
+modules: [ci, verification]
 library: false
 models: [simple-box]
 tasks: [test]
