@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/11-build123d
-modules: [ci, builder-build123d]
+branch: issue/17-scad-builders
+modules: [ci, builder-pythonscad, builder-pybosl2]
 library: false
-examples: [simple-box, simple-box-build123d]
+examples: all
 tasks: [test]
