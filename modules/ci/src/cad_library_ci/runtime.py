@@ -35,9 +35,15 @@ def execute(manifest, output):
             report = resolve(row["verify_entry"])(row["adapter"], artifact, Path(row["definition"]), target / "verification", verification_id=item_id)
             result["verification_status"] = report["status"]
             result["status"] = report["status"]
+            if result["status"] == "pass" and row.get("preview_entry"):
+                result["preview_status"] = "error"
+                resolve(row["preview_entry"])(row["preview_adapter"], artifact, target)
+                result["preview_status"] = "pass"
         except Exception as exc:
             result["error"] = "".join(traceback.format_exception_only(type(exc), exc)).strip()
-            if result["build_status"] == "pass":
+            if result.get("preview_status") == "error":
+                result["status"] = "error"
+            elif result["build_status"] == "pass":
                 result["verification_status"] = "error"
         write_json(target / "result.json", result)
         results.append(result)
