@@ -156,6 +156,8 @@ Physical model dependencies name other owner ids. Selection closes transitively 
 
 Incremental publication replaces selected model owners, preserves untouched active owners with their source provenance and removes deleted owners. Permanent successful runs publish separate `main/` and `dev/` scopes on the generated `build` branch.
 
+Workflow roles mirror `template.cad.model-project`: pull requests run only the `ci` qualification job; permanent `dev`/`main` events run one `build` job that executes the selected project work and publishes the durable scope. Pages is not a downstream job in that build graph: after successful publication the build only dispatches the independent `pages.yml` workflow and finishes without waiting for it.
+
 ## Presentation
 
 Hugo reads model metadata plus durable build output. It never executes CAD or verification. Each declared `model.yml.purpose` projects the owner into Examples and/or Verification. Legacy Models routes redirect to the matching purpose view. Pages must not copy generated CAD artifacts.
