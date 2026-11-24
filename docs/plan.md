@@ -2,6 +2,7 @@
 
 ## Now
 
+- #45: add generic library release qualification on durable build evidence and delegate publication to released `tool.py.lib.ci`.
 - #25: qualify generic named verification stages across runtime roles. The first real consumer is Forge NEW historical simple-box: native saved-design/timeline verification in `solidcraft` plus mesh verification in `reference`.
 - #12: restore the shared Hextra/CAD foundation using current template.cad.model-project and CAD NEW styling; qualify the current physical-owner/purpose projection and multi-engine evidence with rendered desktop/mobile screenshots before consumer adoption.
 - #4: keep consumer migration open until Forge NEW is proven on the corrected template.
@@ -15,7 +16,8 @@
 - durable publication is owner-grouped below `build/<scope>/models/`;
 - Pages links durable CAD artifacts instead of duplicating them;
 - pull requests run only central `ci`; permanent `dev`/`main` runs use one `build` job and dispatch the independent Pages workflow after durable publication;
-- every source-branch integration is executed through the local `/merge` policy; agents do not select or bypass merge methods.
+- every source-branch integration is executed through the local `/merge` policy; agents do not select or bypass merge methods;
+- stable release qualification is independent of Pages and is based on exact durable `build/main` evidence plus explicit library qualification.
 
 ## Next
 
