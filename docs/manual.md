@@ -40,7 +40,7 @@ Do not create separate model owners merely because the same geometry is implemen
 purpose: [example, verification]
 ```
 
-`example` makes the owner public in Pages. `verification` marks it as qualification material. Both are allowed together.
+`example` selects the Examples view. `verification` selects the Verification view. Both are allowed together; they project one physical model owner.
 
 ### Multiple implementations
 
@@ -129,6 +129,6 @@ Pull requests upload candidate evidence but do not publish generated branches.
 
 ## Pages
 
-Pages is separate from CAD CI. Hugo consumes `models/` metadata and the corresponding durable build scope. Verification-only owners are excluded; an owner containing both `example` and `verification` is public. When implementation results contain named `verification_stages`, Pages renders each stage status and links the stage-local durable report. Legacy/single-stage results remain supported through the aggregate verification status and compatibility report link.
+Pages is separate from CAD CI. Hugo consumes `models/` metadata and the corresponding durable build scope. Examples and Verification are purpose-driven public views. Owners with both purposes appear in both views without duplicating physical ownership or generated artifacts. When implementation results contain named `verification_stages`, Pages renders each stage status and links the stage-local durable report. Legacy/single-stage results remain supported through the aggregate verification status and compatibility report link.
 
 Stable content is published at `/` and development content at `/dev/`.

@@ -22,4 +22,4 @@ Physical model dependencies name owner ids. Selection closes over downstream dep
 
 Reusable verification belongs in `modules/verification/`; owner-specific built-artifact expectations stay in `models/<id>/verification/`. Optional `models/<id>/tests/` are owner-local source/compiler contract tests and run only with that selected owner; do not move them into `cadlib/tests` unless the contract is genuinely package-wide.
 
-Pages is separate from CAD CI. Hugo reads source metadata and durable build evidence only. Verification-only owners are not public. Keep the established Hextra/CAD presentation baseline.
+Pages is separate from CAD CI. Hugo reads source metadata and durable build evidence only. Project model purposes into Examples and Verification without duplicating physical owners or generated artifacts. Keep the established Hextra/CAD presentation baseline.

@@ -1,6 +1,6 @@
 schema: 1
-branch: fix/32-model-test-dependency-scope
-modules: [ci]
+branch: issue/12-site-layout
+modules: [pages]
 library: false
-models: [simple-box]
+models: []
 tasks: [test]

@@ -44,7 +44,7 @@ A **model directory is the selection and publication owner**. Engine implementat
 purpose: [example, verification]
 ```
 
-Supported values are `example` and `verification`. A model may have either or both. Verification-only models stay out of Pages.
+Supported values are `example` and `verification`. A model may have either or both. Pages projects each declared purpose into its own catalogue; both purposes may refer to the same physical owner.
 
 ## Model execution contract
 
@@ -158,6 +158,11 @@ Incremental publication replaces selected model owners, preserves untouched acti
 
 ## Presentation
 
-Hugo reads model metadata plus durable build output. It never executes CAD or verification. Public visibility is controlled only by `model.yml.purpose`.
+Hugo reads model metadata plus durable build output. It never executes CAD or verification. Each declared `model.yml.purpose` projects the owner into Examples and/or Verification. Legacy Models routes redirect to the matching purpose view. Pages must not copy generated CAD artifacts.
 
 The custom model presentation continues to use the established Hextra CAD baseline from `exp.2026-015.hugo-cad-site` and `template.cad.model-project`.
+
+Optional `model.yml.presentation_primary` selects a declared implementation for
+the featured source and image without changing the execution primary. It defaults
+to `ci.yml.primary`. Native builder snapshots use their own implementation
+artifact; Pages never substitutes another implementation's preview.
