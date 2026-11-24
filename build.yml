@@ -1,6 +1,6 @@
 schema: 1
 branch: issue/23-model-owners
-modules: [ci]
+modules: [ci, build, pages]
 library: false
 models: [simple-box]
 tasks: [test]
