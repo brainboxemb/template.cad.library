@@ -8,6 +8,7 @@ on:
       - "site/**"
       - "modules/pages/**"
       - "docs/**"
+      - "examples/**"
   workflow_dispatch:
 
 concurrency:
@@ -33,6 +34,7 @@ jobs:
         with:
           hugo-version: "0.169.0"
           extended: true
+      - run: python -m pip install PyYAML==6.0.2
       - name: Build and verify site
         env:
           PYTHONPATH: modules/pages/src
@@ -70,12 +72,23 @@ jobs:
         with:
           hugo-version: "0.169.0"
           extended: true
+      - name: Read generated build branch when present
+        run: |
+          mkdir -p prepared-build
+          if git -C source-main ls-remote --exit-code --heads origin refs/heads/build; then
+            git -C source-main fetch --no-tags --depth=1 origin build
+            git -C source-main archive FETCH_HEAD | tar -x -C prepared-build
+          else
+            status=$?
+            test "$status" -eq 2
+          fi
       - name: Build stable site
         env:
           PYTHONPATH: source-main/modules/pages/src
         run: >-
           python -m cad_library_pages.build
           --source-root source-main
+          --build-scope prepared-build/main
           --destination generated-site
           --base-url "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/"
       - name: Build development site
@@ -84,6 +97,7 @@ jobs:
         run: >-
           python -m cad_library_pages.build
           --source-root source-dev
+          --build-scope prepared-build/dev
           --destination generated-site/dev
           --base-url "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/dev/"
       - name: Publish Pages branch

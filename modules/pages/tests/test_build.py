@@ -8,6 +8,7 @@ class BuildTests(unittest.TestCase):
     def test_build_invokes_hugo_and_requires_index(self):
         with TemporaryDirectory() as tmp:
             root = Path(tmp)
+            (root / "site").mkdir()
             destination = root / "out"
             destination.mkdir()
             with patch("cad_library_pages.build.subprocess.run") as run:
