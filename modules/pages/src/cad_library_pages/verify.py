@@ -35,6 +35,12 @@ def verify(source_root: Path, site: Path, build_scope: Path | None):
                 continue
             html = read(route)
             expected = ["cad-model-detail", str(meta.get("title", item)), "Build and verification"]
+            order = ["expected-setup", "primary-source", "reference-code", "build-verification"]
+            if not ci.get("implementations"):
+                order.remove("primary-source")
+            positions = [html.find(marker) for marker in order]
+            if -1 in positions or positions != sorted(positions):
+                raise RuntimeError(f"{route}: model reading order is incorrect: {order}")
             for implementation in ci.get("implementations", []):
                 expected.append(f'{implementation["id"]} source')
             evidence = build_scope / "models" / item if build_scope else None
@@ -46,6 +52,13 @@ def verify(source_root: Path, site: Path, build_scope: Path | None):
                 if (evidence / "model.stl").is_file():
                     expected.append(f"/blob/build/{build_scope.name}/models/{item}/model.stl")
                 for impl, state in result.get("implementations", {}).items():
+                    impl_root = evidence / impl
+                    if (impl_root / "solidcraft.json").is_file() and any(i["id"] == impl for i in ci.get("implementations", [])):
+                        expected.append(f"Generated command sequence — {impl}")
+                        if not html.find("cad-command-section") < html.find("reference-code"):
+                            raise RuntimeError(f"{route}: generated commands must precede references")
+                    if impl != ci.get("primary") and (impl_root / "model.png").is_file() and any(i["id"] == impl for i in ci.get("implementations", [])):
+                        expected.append(f"/build/{build_scope.name}/models/{item}/{impl}/model.png")
                     for stage in state.get("verification_stages", {}):
                         report = f"{impl}/verification/{stage}/verification.json"
                         if (evidence / report).is_file():

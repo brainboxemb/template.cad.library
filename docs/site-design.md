@@ -80,14 +80,18 @@ style belong here.
 
 ## Acceptance status
 
-The current draft's shared CSS and basic Hugo layout passed technical
-qualification, but the model-detail information architecture is incomplete:
+The earlier draft's shared CSS and basic Hugo layout passed technical
+qualification, but the model-detail information architecture was incomplete:
 it begins with a generic preview/files panel, lacks a separate expected-setup
 diagram and command sequence, and puts independent source blocks apart from
 their result images. A passing screenshot job is not acceptance of this layout.
 
-Rework the template detail composition against the historical content
-mapping above before consumer adoption. Compare the rendered full page,
+The revised candidate implements the expected/actual overview, engineering
+prose, primary source, durable command sequences, independent source/preview
+rows and per-stage report details. Verify this composition before consumer
+adoption. Current visual actual/goal/overlay/diff migration and a dedicated
+presentation for native parameter and saved-design measurements remain open;
+reports preserve the exact machine evidence in the meantime. Compare the rendered full page,
 not only the first viewport. Require visible expectation/result distinction,
 primary source, applicable generated commands, side-by-side reference
 comparisons, and access to real verification evidence. Capture representative
