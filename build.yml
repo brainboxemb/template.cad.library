@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/9-cadlib-owner
-modules: [ci]
-library: true
-examples: []
+branch: issue/14-model-preview
+modules: [ci, preview]
+library: false
+examples: [simple-box]
 tasks: [test]

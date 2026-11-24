@@ -7,3 +7,7 @@ verification:
   module: verification
   adapter: mesh-geometry
   definition: verification/geometry.json
+
+preview:
+  module: preview
+  adapter: mesh

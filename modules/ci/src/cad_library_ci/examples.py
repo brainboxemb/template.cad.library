@@ -23,6 +23,8 @@ class Example:
     verify_entry: str
     dependencies: tuple[str, ...]
     watch_prefix: str
+    preview_entry: str | None = None
+    preview_adapter: str | None = None
 
 
 def owned_file(root, value):
@@ -71,9 +73,16 @@ def discover_examples(repo, modules):
         needs = data.get("needs", [])
         if not isinstance(needs, list) or any(n != "cadlib" and n not in by_id for n in needs):
             raise ConfigError(f"invalid dependencies: {path}")
+        preview_entry = preview_adapter = None
+        if (preview := data.get("preview")) is not None:
+            if not isinstance(preview, dict) or not isinstance(preview.get("module"), str) or not isinstance(preview.get("adapter"), str):
+                raise ConfigError(f"invalid preview capability: {path}")
+            preview_entry = capability(by_id, preview["module"], "preview")["entrypoint"]
+            preview_adapter = preview["adapter"]
+            needs = [*needs, preview["module"]]
         examples.append(Example(item_id, directory, builder, owned_file(directory, data.get("source")),
             verifier, v["adapter"], owned_file(directory, v.get("definition")), runtime,
-            b["entrypoint"], vc["entrypoint"], tuple(dict.fromkeys([builder, verifier, *needs])), directory.relative_to(repo).as_posix() + "/"))
+            b["entrypoint"], vc["entrypoint"], tuple(dict.fromkeys([builder, verifier, *needs])), directory.relative_to(repo).as_posix() + "/", preview_entry, preview_adapter))
         seen.add(item_id)
     return tuple(examples)
 
