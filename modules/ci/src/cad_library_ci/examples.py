@@ -22,6 +22,7 @@ class Example:
     build_entry: str
     verify_entry: str
     dependencies: tuple[str, ...]
+    watch_prefix: str
 
 
 def owned_file(root, value):
@@ -72,7 +73,7 @@ def discover_examples(repo, modules):
             raise ConfigError(f"invalid dependencies: {path}")
         examples.append(Example(item_id, directory, builder, owned_file(directory, data.get("source")),
             verifier, v["adapter"], owned_file(directory, v.get("definition")), runtime,
-            b["entrypoint"], vc["entrypoint"], tuple(dict.fromkeys([builder, verifier, *needs]))))
+            b["entrypoint"], vc["entrypoint"], tuple(dict.fromkeys([builder, verifier, *needs])), directory.relative_to(repo).as_posix() + "/"))
         seen.add(item_id)
     return tuple(examples)
 
@@ -89,5 +90,5 @@ def select_examples(examples, *, explicit=None, paths=None, selected_modules=(),
         return ()
     chosen = set(selected_modules)
     return tuple(e for e in examples if chosen.intersection(e.dependencies)
-        or any(p.startswith(e.root.as_posix().rstrip("/") + "/") for p in paths)
+        or any(p.startswith(e.watch_prefix) for p in paths)
         or ("cadlib" in e.dependencies and any(p.startswith("cadlib/") for p in paths)))
