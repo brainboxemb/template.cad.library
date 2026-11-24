@@ -112,3 +112,9 @@ selects the presentation subject without changing `ci.yml.primary: cadquery`.
 For Forge, the default SCPF build primary already identifies the native subject.
 Verification report image artifacts are displayed only when present, preserving
 stage/check provenance. An ordinary model preview is not a visual comparison.
+
+The consolidated check overview additionally displays explicit expected/measured
+values from the published report, including native parameter pairs, body
+envelopes, geometry bounds and saved-design checks where available. No new
+verification decisions are made in Pages; raw report links remain available.
+Historical visual comparison policy migration is still a separate task.

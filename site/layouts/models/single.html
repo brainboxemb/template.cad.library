@@ -76,9 +76,17 @@
     <h2 class="cad-section-title">Verification checks</h2>
     {{ range .Params.sources }}
     <h3 class="cad-section-subtitle">{{ .id }} — {{ .status | default "unavailable" }}</h3>
-    <dl class="cad-verification-grid">
-      {{ range .checks }}<dt>{{ .stage }} / {{ .id }}</dt><dd><strong>{{ .status }}</strong></dd>{{ else }}<dt>Checks</dt><dd>No published check results.</dd>{{ end }}
-    </dl>
+    {{ range .checks }}
+    <div class="cad-check">
+      <div class="cad-check-heading"><strong>{{ .stage }} / {{ .id }}</strong><span class="cad-status {{ if eq .status "pass" }}cad-status-ok{{ else }}cad-status-pending{{ end }}">{{ .status }}</span></div>
+      {{ with .comparisons }}
+      <div class="cad-check-table-scroll"><table class="cad-check-table">
+        <thead><tr><th scope="col">Measurement</th><th scope="col">Expected</th><th scope="col">Measured</th><th scope="col">Check</th></tr></thead>
+        <tbody>{{ range . }}<tr><th scope="row">{{ .label }}</th><td>{{ .expected }}</td><td>{{ .actual }}</td><td>{{ .status }}</td></tr>{{ end }}</tbody>
+      </table></div>
+      {{ end }}
+    </div>
+    {{ else }}<p class="cad-muted">No published check results.</p>{{ end }}
     {{ end }}
   </section>
   <section class="cad-panel cad-verification-panel" id="build-verification">

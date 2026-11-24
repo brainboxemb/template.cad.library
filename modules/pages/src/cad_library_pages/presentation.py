@@ -84,6 +84,50 @@ def command_sequence(path):
             for command in commands]
 
 
+def _value(value):
+    """Display machine values without changing their meaning."""
+    if isinstance(value, float):
+        return format(value, ".12g")
+    if isinstance(value, list) and all(isinstance(v, (int, float)) for v in value):
+        return " × ".join(_value(v) for v in value)
+    return json.dumps(value, ensure_ascii=False, sort_keys=True)
+
+
+def comparison_rows(evidence):
+    """Project explicit expected/actual pairs; never infer a PASS."""
+    rows = []
+
+    def add(label, expected, actual, status):
+        rows.append({"label": label, "expected": _value(expected), "actual": _value(actual),
+                     "status": "pass" if status is True else "fail" if status is False else "—"})
+
+    for key, value in evidence.items():
+        if not isinstance(value, dict):
+            continue
+        label = value.get("label") or key.replace("_", " ").capitalize()
+        status = value.get("pass")
+        if "expected" in value and "actual" in value:
+            expected, actual = value["expected"], value["actual"]
+            if isinstance(expected, dict) and isinstance(actual, dict):
+                for name in sorted(expected.keys() | actual.keys()):
+                    add(f"{label} / {name}", expected.get(name), actual.get(name), status)
+            else:
+                add(label, expected, actual, status)
+        for name in sorted(value):
+            if name.startswith("expected_"):
+                suffix = name.removeprefix("expected_")
+                actual_name = f"actual_{suffix}"
+                if actual_name in value:
+                    add(f"{label} / {suffix.replace('_', ' ')}", value[name], value[actual_name], status)
+        if key == "body_envelopes":
+            for i, pair in enumerate(value.get("matched_pairs", []), 1):
+                expected, actual = pair.get("expected", {}), pair.get("actual", {})
+                for bound in ("min", "max"):
+                    if bound in expected and bound in actual:
+                        add(f"Body {i} / {bound} [mm]", expected[bound], actual[bound], None)
+    return rows
+
+
 def implementation_evidence(root, blob_url, raw_url, state):
     """Use only artifacts actually present in this implementation's build."""
     data = {"status": state.get("status") or state.get("verification_status") or "unavailable",
@@ -108,7 +152,8 @@ def implementation_evidence(root, blob_url, raw_url, state):
         payload = json.loads(report.read_text(encoding="utf-8"))
         for check in payload.get("checks", []):
             data["checks"].append({"stage": report.parent.name, "id": check.get("id", ""),
-                                   "status": check.get("status", "unavailable")})
+                                   "status": check.get("status", "unavailable"),
+                                   "comparisons": comparison_rows(check.get("evidence") or {})})
             for artifact in check.get("artifacts", []):
                 rel = artifact.get("path")
                 if not isinstance(rel, str):

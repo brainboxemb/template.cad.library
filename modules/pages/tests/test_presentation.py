@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from cad_library_pages.presentation import expected_setup, setup_svg, implementation_evidence
+from cad_library_pages.presentation import expected_setup, setup_svg, implementation_evidence, comparison_rows
 
 
 class PresentationTests(unittest.TestCase):
@@ -28,6 +28,20 @@ class PresentationTests(unittest.TestCase):
             self.assertIn("Overall X: 40 mm", svg)
             self.assertIn("Target &amp; body", svg)
             self.assertNotIn("99 mm", svg)
+
+    def test_comparison_uses_explicit_expected_measured_and_status(self):
+        rows = comparison_rows({
+            "parameters": {"expected": {"length": 40}, "actual": {"length": 39}, "pass": False},
+            "bounds": {"expected_min": [0, 0, 0], "actual_min": [0, 0, 0], "pass": True},
+            "body_envelopes": {"pass": True, "matched_pairs": [{
+                "expected": {"min": [0, 0, 0]}, "actual": {"min": [0, 0, 0]}
+            }]},
+            "unpaired": {"actual": 123},
+        })
+        self.assertEqual(rows[0], {"label": "Parameters / length", "expected": "40", "actual": "39", "status": "fail"})
+        self.assertEqual(rows[1]["status"], "pass")
+        self.assertEqual(rows[2]["status"], "—")
+        self.assertEqual(len(rows), 3)
 
     def test_source_only_uses_explicit_geometry_contract(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -56,7 +70,7 @@ class PresentationTests(unittest.TestCase):
             data = implementation_evidence(root, "https://example.org/blob/reference", "https://example.org/raw/reference", {"status": "pass"})
             self.assertEqual(data["previewurl"], "https://example.org/raw/reference/model.png")
             self.assertEqual(data["commands"][0]["name"], "solid.box")
-            self.assertEqual(data["checks"], [{"stage": "geometry", "id": "geometry", "status": "pass"}])
+            self.assertEqual(data["checks"], [{"stage": "geometry", "id": "geometry", "status": "pass", "comparisons": []}])
             self.assertEqual(len(data["images"]), 1)
             self.assertTrue(data["images"][0]["url"].endswith("/verification/geometry/actual.png"))
             self.assertIn("verification/geometry/verification.json", data["reports"][0]["url"])

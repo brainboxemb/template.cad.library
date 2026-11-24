@@ -1139,3 +1139,13 @@ html:not(.dark) .hextra-search-trigger{font-size:.9rem}
 .cad-reference-comparison .cad-reference-source, .cad-reference-comparison .cad-reference-output { min-width: 0; }
 .cad-reference-comparison .cad-reference-output .cad-preview { margin-top: 0; }
 @media (max-width: 840px) { .cad-reference-comparison .cad-reference-grid { grid-template-columns: 1fr; } }
+
+/* Readable check summaries; raw reports remain authoritative. */
+.cad-check { margin: .8rem 0 1.2rem; }
+.cad-check-heading { display: flex; flex-wrap: wrap; gap: .65rem; align-items: center; margin-bottom: .45rem; }
+.cad-check-table-scroll { overflow-x: auto; }
+.cad-check-table { border-collapse: collapse; width: 100%; font-size: .84rem; text-align: left; }
+.cad-check-table th, .cad-check-table td { border-bottom: 1px solid var(--cad-line); padding: .55rem .65rem; vertical-align: top; overflow-wrap: anywhere; }
+.cad-check-table thead th { background: var(--cad-soft); }
+.cad-check-table tbody th { font-weight: 550; }
+.cad-check-table tbody td { font-family: var(--cad-font-mono); }
