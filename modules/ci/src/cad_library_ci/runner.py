@@ -56,14 +56,18 @@ def execute(modules):
 
 def execute_model_tests(repo, models, library, *, dependencies_installed=False):
     """Run optional owner-local tests for exactly the selected models."""
+    tested = tuple(
+        (model, model.root / "tests")
+        for model in models
+        if (model.root / "tests").is_dir()
+    )
+    if not tested:
+        return
     if not dependencies_installed:
         install_dependencies(selected_dependencies((library,)))
 
     library_source = str((library.root / "src").resolve())
-    for model in models:
-        tests = model.root / "tests"
-        if not tests.is_dir():
-            continue
+    for model, tests in tested:
         env = dict(os.environ)
         previous = env.get("PYTHONPATH", "")
         entries = [library_source, str(model.root.resolve())]
