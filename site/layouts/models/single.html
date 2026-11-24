@@ -59,6 +59,29 @@
     {{ end }}{{ end }}
     {{ if le (len .Params.sources) 1 }}<p>No independent implementation is declared.</p>{{ end }}
   </section>
+  {{ range .Params.sources }}{{ if .visualviews }}
+  <section class="cad-panel cad-visual-verification" data-implementation="{{ .id }}">
+    <h2 class="cad-section-title">Current visual verification — {{ .id }}</h2>
+    <p class="cad-section-help">Each model-owned view is evaluated independently. Actual is the current native result; Goal is the declared expected profile; Overlay combines both; Diff compares the approved regression baseline.</p>
+    {{ range .visualviews }}
+    <section class="cad-visual-view" data-view="{{ .view }}">
+      <div class="cad-visual-view-heading">
+        <h3 class="cad-section-subtitle">{{ .view }}</h3>
+        <span class="cad-status {{ if eq .status "pass" }}cad-status-ok{{ else }}cad-status-pending{{ end }}">{{ .status }}</span>
+      </div>
+      <p class="cad-section-help">Regression: {{ .baseline_status }} · expected shape: {{ .expected_shape_status }}</p>
+      <div class="cad-visual-grid">
+        {{ range .images }}
+        <figure class="cad-visual-card">
+          <a href="{{ .url }}"><img src="{{ .url }}" alt="{{ $.Title }} {{ .role }} visual verification"></a>
+          <figcaption>{{ .role }}</figcaption>
+        </figure>
+        {{ end }}
+      </div>
+    </section>
+    {{ end }}
+  </section>
+  {{ end }}{{ end }}
   <section class="cad-panel" id="image-overview">
     <h2 class="cad-section-title">Image overview</h2>
     <div class="cad-reference-grid cad-evidence-gallery">
