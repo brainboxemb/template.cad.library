@@ -7,7 +7,6 @@ import shutil
 import subprocess
 import tempfile
 import threading
-from urllib.parse import urlsplit
 
 
 def capture(site: Path, base_path: str, output: Path):
@@ -19,7 +18,7 @@ def capture(site: Path, base_path: str, output: Path):
     routes = [("home", ""), ("documentation", "docs/"), ("examples", "examples/"), ("verification", "verification/")]
     for section in ("examples", "verification"):
         routes.extend((f"{section}-{p.parent.name}", f"{section}/{p.parent.name}/")
-                      for p in sorted((site / section).glob("*/index.html")))
+                      for p in sorted((site / section).glob("*/index.html"))[:1])
     failures = []
     class Handler(SimpleHTTPRequestHandler):
         def log_message(self, format, *args):

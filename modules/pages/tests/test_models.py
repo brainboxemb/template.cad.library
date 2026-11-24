@@ -25,8 +25,10 @@ class ModelPagesTests(unittest.TestCase):
                     f"title: {item}\npurpose: {purpose}\n"
                 )
                 (owner / "ci.yml").write_text(
-                    f"id: {item}\nprimary: cadquery\n"
+                    f"id: {item}\nprimary: cadquery\nimplementations:\n  - id: cadquery\n    source: model.py\n"
                 )
+
+                (owner / "model.py").write_text("value = 42\n")
 
             build_scope = root / "build" / "dev"
             evidence = build_scope / "models" / "box"
@@ -72,6 +74,8 @@ class ModelPagesTests(unittest.TestCase):
             page = site / "content/examples/box/index.md"
             content = page.read_text()
             self.assertIn("test-sha", content)
+            self.assertIn("value = 42", content)
+            self.assertIn("model.py", content)
             self.assertIn(
                 "https://github.com/owner/repo/blob/build/dev/models/box/model.stl",
                 content,
