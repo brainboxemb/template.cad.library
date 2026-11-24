@@ -1,0 +1,7 @@
+schema: 1
+id: preview
+kind: python
+preview:
+  entrypoint: cad_library_preview:render
+watch:
+  - modules/verification/**

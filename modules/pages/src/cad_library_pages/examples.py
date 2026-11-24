@@ -47,7 +47,7 @@ def prepare_examples(source_root: Path, site: Path, build_scope: Path | None):
             provenance = json.loads((evidence / "source.json").read_text())
             report = json.loads((evidence / "verification/verification.json").read_text())
             data["params"].update(result=result, provenance=provenance, checks=report.get("checks", []))
-            for name in ("result.json", "source.json", "model.stl", "model.step", "model.sc", "model.png", "solidcraft.json"):
+            for name in ("result.json", "source.json", "model.stl", "model.step", "model.sc", "model.png", "preview.json", "solidcraft.json"):
                 if (evidence / name).is_file():
                     shutil.copy2(evidence / name, bundle / name)
             shutil.copy2(evidence / "verification/verification.json", bundle / "verification.json")
