@@ -17,11 +17,12 @@ class ExampleTests(unittest.TestCase):
         self.examples = discover_examples(self.repo, self.modules)
 
     def test_discovery_and_dependency_selection(self):
-        self.assertEqual([x.id for x in self.examples], ["simple-box"])
+        self.assertEqual([x.id for x in self.examples], ["simple-box", "simple-box-build123d"])
         self.assertEqual(len(select_examples(self.examples, explicit=["simple-box"])), 1)
-        self.assertEqual(len(select_examples(self.examples, paths=("docs/plan.md",), selected_modules=("verification",))), 1)
+        self.assertEqual(len(select_examples(self.examples, paths=("docs/plan.md",), selected_modules=("verification",))), 2)
         self.assertEqual(len(select_examples(self.examples, paths=("examples/simple-box/cadquery/model.py",))), 1)
         self.assertEqual(select_examples(self.examples, paths=("docs/plan.md",)), ())
+        self.assertEqual([x.id for x in select_examples(self.examples, paths=(), selected_modules=("builder-build123d",))], ["simple-box-build123d"])
 
     def test_single_docker_invocation_per_runtime(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -30,7 +31,8 @@ class ExampleTests(unittest.TestCase):
                     path = next(x.split(":/manifest.json:ro")[0] for x in command if x.endswith(":/manifest.json:ro"))
                     manifest = json.loads(Path(path).read_text())
                     self.assertEqual(manifest["runtime"], "reference")
-                    self.assertEqual(len(manifest["examples"]), 1)
+                    self.assertEqual(len(manifest["examples"]), 2)
+                    self.assertEqual(manifest["examples"][1]["engine_python"], "/opt/build123d/bin/python")
                     self.assertTrue(any("modules/verification/src" in x for x in command))
                     run.return_value.returncode = 0
                     return run.return_value

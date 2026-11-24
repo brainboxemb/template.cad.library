@@ -38,6 +38,7 @@ def run_batches(repo, project, modules, examples, output):
                 "source": "/repo/" + e.source.relative_to(repo).as_posix(),
                 "definition": "/repo/" + e.definition.relative_to(repo).as_posix(),
                 "preview_entry": e.preview_entry, "preview_adapter": e.preview_adapter,
+                "engine_python": e.engine_python,
             })
         manifest = {"schema": 1, "runtime": role, "image": image, "examples": records}
         with tempfile.TemporaryDirectory(prefix="cad-batch-") as tmp:
