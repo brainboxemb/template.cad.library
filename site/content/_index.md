@@ -2,7 +2,7 @@
 title: CAD library
 ---
 
-Reusable CAD library documentation and example catalogue.
+Reusable CAD library documentation and model catalogue.
 
 - [Documentation](docs/)
-- [Examples](examples/)
+- [Models](models/)
