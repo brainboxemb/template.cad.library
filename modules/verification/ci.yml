@@ -2,3 +2,5 @@ schema: 1
 id: verification
 kind: python
 impact: self
+verifier:
+  entrypoint: cad_verification.runtime:run

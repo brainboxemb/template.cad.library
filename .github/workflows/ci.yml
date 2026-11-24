@@ -36,6 +36,14 @@ jobs:
           PYTHONPATH: modules/ci/src
         run: python -m cad_library_ci
 
+      - name: Upload qualification evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cad-qualification
+          path: build/qualification/
+          if-no-files-found: ignore
+
   dispatch-pages:
     needs: verify
     if: github.event_name != 'pull_request' && (github.ref_name == 'main' || github.ref_name == 'dev')
