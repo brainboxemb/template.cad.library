@@ -1,5 +1,4 @@
 schema: 1
-branch: issue/1-base-infrastructure
-modules: all
-tasks:
-  - test
+branch: issue/4-library-verification-layout
+modules: [ci]
+tasks: [test]
