@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/19-solidcraft-builder
-modules: [ci, builder-solidcraft]
+branch: issue/4-standard-builder-contract
+modules: [ci]
 library: false
-examples: [simple-box, simple-box-solidcraft]
+examples: []
 tasks: [test]
