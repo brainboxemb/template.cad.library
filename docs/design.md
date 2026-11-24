@@ -22,6 +22,7 @@ models/
 modules/
   ci/
   build/
+  release/
   pages/
   verification/
   preview/
@@ -154,7 +155,7 @@ Physical model dependencies name other owner ids. Selection closes transitively 
 
 ## Durable output
 
-Incremental publication replaces selected model owners, preserves untouched active owners with their source provenance and removes deleted owners. Permanent successful runs publish separate `main/` and `dev/` scopes on the generated `build` branch.
+Incremental publication replaces selected model owners, preserves untouched active owners with their source provenance and removes deleted owners. Permanent successful runs publish separate `main/` and `dev/` scopes on the generated `build` branch. `build-plan.json` records whether the independent library owner was selected and qualified; stable release qualification requires `library: true` in addition to a full model-owner build.
 
 Workflow roles mirror `template.cad.model-project`: pull requests run only the `ci` qualification job; permanent `dev`/`main` events run one `build` job that executes the selected project work and publishes the durable scope. Pages is not a downstream job in that build graph: after successful publication the build only dispatches the independent `pages.yml` workflow and finishes without waiting for it.
 
@@ -168,3 +169,21 @@ Optional `model.yml.presentation_primary` selects a declared implementation for
 the featured source and image without changing the execution primary. It defaults
 to `ci.yml.primary`. Native builder snapshots use their own implementation
 artifact; Pages never substitutes another implementation's preview.
+
+## Release boundary
+
+Release qualification is separate from normal CI, durable publication and Pages.
+
+The template-owned `modules/release` capability reads one materialized
+`build/main` scope and requires the exact requested source SHA, a full build,
+explicit library qualification, every active owner selected, and successful
+owner evidence with matching source provenance. It never creates tags or GitHub
+Releases.
+
+`.github/workflows/release.yml` is a thin issue-comment adapter. It uses the
+released `tool.py.lib.ci v0.2.1` command parser, checks stable build evidence
+through `modules/release`, and then delegates the tag/GitHub Release
+transaction to that released tool. Consumer-specific package/release-note rules
+live in `cadlib/release.py`.
+
+Pages and `gh-pages` are not release evidence.
