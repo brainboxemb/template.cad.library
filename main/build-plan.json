@@ -1,19 +1,28 @@
 {
   "active": [
-    "simple-box",
-    "simple-box-build123d",
-    "simple-box-pybosl2",
-    "simple-box-pythonscad",
-    "simple-box-solidcraft"
+    "simple-box"
   ],
   "full": true,
-  "schema": 1,
-  "selected": [
-    "simple-box",
-    "simple-box-build123d",
-    "simple-box-pybosl2",
-    "simple-box-pythonscad",
-    "simple-box-solidcraft"
+  "models": [
+    {
+      "id": "simple-box",
+      "implementations": [
+        "cadquery",
+        "build123d",
+        "pythonscad",
+        "pybosl2",
+        "solidcraft"
+      ],
+      "primary": "cadquery",
+      "purpose": [
+        "example",
+        "verification"
+      ]
+    }
   ],
-  "source_sha": "f73c3e76066b16751d4bd1eb7f1c221e0f3fc3fe"
+  "schema": 2,
+  "selected": [
+    "simple-box"
+  ],
+  "source_sha": "1d9cddfe975d508e2aaa03cb140cbf61e2fdff82"
 }
