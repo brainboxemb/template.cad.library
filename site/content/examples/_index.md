@@ -2,4 +2,4 @@
 title: Examples
 ---
 
-Verified library examples will be published here after example integration.
+CAD library examples and their published verification evidence.
