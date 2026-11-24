@@ -135,9 +135,19 @@ No third verification image is used.
 
 ## Durable output
 
-Successful permanent-branch CI publishes owner-grouped output below `build/<scope>/models/`. The owner root contains aggregate status and canonical primary artifacts; each implementation retains its own build, staged verification and preview evidence.
+The permanent-branch `build` job publishes owner-grouped output below `build/<scope>/models/`. The owner root contains aggregate status and canonical primary artifacts; each implementation retains its own build, staged verification and preview evidence.
 
-Pull requests upload candidate evidence but do not publish generated branches.
+Pull requests run the `ci` qualification job only, may upload candidate evidence for inspection, and never publish generated branches.
+
+## Workflow roles
+
+The thin workflow shape matches `template.cad.model-project`:
+
+- pull requests run the `ci` job only and never publish generated branches;
+- permanent `dev`/`main` events run one `build` job that executes `cad_library_ci` and publishes `build/qualification` through `cad_library_build.publish`;
+- after successful build publication, that job dispatches `pages.yml` and finishes without waiting for Pages.
+
+Do not reintroduce a permanent-branch `verify -> publish-build -> dispatch-pages` job chain or pass qualification output between those permanent-branch jobs as an Actions artifact.
 
 ## Pages
 
