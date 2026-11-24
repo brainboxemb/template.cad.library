@@ -2,7 +2,7 @@
   "active": [
     "simple-box"
   ],
-  "full": false,
+  "full": true,
   "models": [
     {
       "id": "simple-box",
@@ -21,6 +21,8 @@
     }
   ],
   "schema": 2,
-  "selected": [],
-  "source_sha": "1d541faa5da5f0b89cce7e14a492d05625013988"
+  "selected": [
+    "simple-box"
+  ],
+  "source_sha": "a4bfc694454b8b28be464a3ebf84f43c4582712e"
 }
