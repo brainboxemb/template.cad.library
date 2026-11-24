@@ -1,0 +1,8 @@
+schema: 1
+id: pages
+kind: python
+impact: self
+watch:
+  - .github/workflows/pages.yml
+  - site/**
+  - docs/**
