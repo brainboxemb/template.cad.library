@@ -8,3 +8,6 @@ enableRobotsTXT = false
 
 [markup.highlight]
   noClasses = false
+
+[params]
+cadSourceRepository = "brainboxemb/template.cad.library"

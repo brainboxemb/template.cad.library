@@ -2,11 +2,13 @@
 
 ## Now
 
-- #4: standard library architecture is implemented: independent cadlib owner, five standard builders, local verification, previews, examples, two runtime roles and durable build publication. Remaining acceptance is consumer migration before the historical verification repository can be retired.
-- #12: qualify the established Hextra CAD presentation visually and on public main/dev routes.
+- #23: align the library template with `template.cad.model-project`: `models/` physical ownership, owner-level selection/publication and multiple engine implementations inside one owner.
+- #12: rebase the Hextra CAD presentation onto the new model-owner contract after #23 is qualified.
+- #4: keep consumer migration open until Forge is proven on the corrected template.
 
 ## Next
 
-- Promote the completed five-builder baseline from `dev` to `main` after permanent-branch qualification.
-- Migrate Forge onto this repository structure and remove its external verification dependency only after equivalent CI/build/site behavior is proven.
-- Adapt the generic example presentation to richer consumer metadata as real Forge examples are migrated; do not add template-only page conventions without a consumer need.
+- Qualify one `simple-box` owner through all five standard engines and both runtime roles.
+- Publish the corrected `build/dev/models/simple-box` scope and then promote #23 to `main`.
+- Resume `lib.py.solidcraft.forge.NEW` bootstrap from the corrected template.
+- Migrate Forge models 1 -> 5 -> 10 -> remaining graph; retain the old Forge repository as A/B reference until parity is proven.
