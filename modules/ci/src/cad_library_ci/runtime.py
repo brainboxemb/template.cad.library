@@ -1,4 +1,4 @@
-"""Container dispatcher: build in compatible interpreter batches, verify in parent."""
+"""Container dispatcher: build local rows, then verify rows assigned to this runtime."""
 import argparse
 import importlib
 import json
@@ -35,7 +35,6 @@ def build_row(row, output):
 
 
 def engine_batch(rows, output, interpreter):
-    """Run all rows for one isolated interpreter in a single child process."""
     with tempfile.TemporaryDirectory(prefix="cad-engine-") as tmp:
         root = Path(tmp)
         manifest, report = root / "manifest.json", root / "report.json"
@@ -50,9 +49,9 @@ def engine_batch(rows, output, interpreter):
             if payload.get("schema") != 1 or set(payload["results"]) != {row["id"] for row in rows}:
                 raise RuntimeError("invalid engine batch report")
             results = payload["results"]
-            if any(not isinstance(r, dict) or r.get("status") not in {"pass", "error"} for r in results.values()):
+            if any(not isinstance(v, dict) or v.get("status") not in {"pass", "error"} for v in results.values()):
                 raise RuntimeError("invalid engine result")
-            expected = 0 if all(r["status"] == "pass" for r in results.values()) else 1
+            expected = 0 if all(v["status"] == "pass" for v in results.values()) else 1
             if completed.returncode != expected:
                 raise RuntimeError(f"engine report disagrees with process exit {completed.returncode}")
             return results
@@ -60,11 +59,9 @@ def engine_batch(rows, output, interpreter):
             return {row["id"]: {"status": "error", "error": describe_error(exc)} for row in rows}
 
 
-def execute(manifest, output):
-    if manifest.get("schema") != 1:
-        raise ValueError("unsupported manifest")
+def _build(manifest, output):
+    rows = manifest.get("build_examples", manifest.get("examples", []))
     groups, built = {}, {}
-    rows = manifest["examples"]
     for row in rows:
         target = output / "examples" / row["id"]
         if target.exists():
@@ -77,18 +74,40 @@ def execute(manifest, output):
             built[row["id"]] = build_row(row, output)
     for interpreter, group in groups.items():
         built.update(engine_batch(group, output, interpreter))
+    for row in rows:
+        status = built[row["id"]]
+        write_json(output / "examples" / row["id"] / "build.json", {
+            "schema": 1, "id": row["id"], "builder": row["builder"],
+            "runtime": row.get("build_image", manifest.get("image")),
+            "build_status": status["status"], "error": status.get("error"),
+        })
+    return all(v["status"] == "pass" for v in built.values())
 
+
+def _verify(manifest, output):
+    rows = manifest.get("verify_examples", manifest.get("examples", []))
+    passed = True
     results = []
     for row in rows:
         item_id = row["id"]
         target = output / "examples" / item_id
-        artifact = target / "model.stl"
-        build = built[item_id]
-        result = {"id": item_id, "builder": row["builder"], "runtime": manifest["image"],
-                  "build_status": build["status"], "verification_status": None, "status": "error"}
-        if build["status"] == "pass":
+        try:
+            build = json.loads((target / "build.json").read_text())
+        except Exception as exc:
+            build = {"build_status": "error", "error": describe_error(exc)}
+        result = {
+            "id": item_id, "builder": row["builder"],
+            "runtime": row.get("build_image"), "verification_runtime": manifest.get("image"),
+            "build_status": build.get("build_status", "error"),
+            "verification_status": None, "status": "error",
+        }
+        if result["build_status"] == "pass":
             try:
-                report = resolve(row["verify_entry"])(row["adapter"], artifact, Path(row["definition"]), target / "verification", verification_id=item_id)
+                artifact = target / "model.stl"
+                report = resolve(row["verify_entry"])(
+                    row["adapter"], artifact, Path(row["definition"]),
+                    target / "verification", verification_id=item_id,
+                )
                 status = report["status"]
                 if status not in {"pass", "fail", "error"}:
                     raise ValueError(f"invalid verification status: {status}")
@@ -107,10 +126,21 @@ def execute(manifest, output):
             result["error"] = build.get("error")
         write_json(target / "result.json", result)
         results.append(result)
+        passed &= result["status"] == "pass"
         print(f"{item_id}: {result['status']}", flush=True)
-    status = "pass" if results and all(r["status"] == "pass" for r in results) else "fail"
-    write_json(output / f"batch-{manifest['runtime']}.json", {"schema": 1, "status": status, "results": results})
-    return 0 if status == "pass" else 1
+    if rows:
+        write_json(output / f"batch-{manifest.get('runtime', 'runtime')}.json", {
+            "schema": 2, "status": "pass" if passed else "fail", "results": results,
+        })
+    return passed
+
+
+def execute(manifest, output):
+    if manifest.get("schema") not in {1, 2}:
+        raise ValueError("unsupported manifest")
+    built = _build(manifest, output)
+    verified = _verify(manifest, output)
+    return 0 if built and verified else 1
 
 
 def main():

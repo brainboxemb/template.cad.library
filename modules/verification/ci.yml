@@ -3,4 +3,5 @@ id: verification
 kind: python
 impact: self
 verifier:
+  runtime: reference
   entrypoint: cad_verification.runtime:run
