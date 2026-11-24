@@ -15,6 +15,10 @@ tasks: [test]
 
 Use modules: all for all modules. If the branch does not match, run full. Main and promotion PRs run full. Dev push/dispatch selects paths since the last successful dev push/dispatch CI SHA; missing or non-ancestor baseline falls back to full. Cancelled runs never advance that baseline.
 
+## Library owner
+
+Set library: true in a matching build.yml to test and package cadlib independently of modules and examples. Dev selects it on cadlib changes; main and promotion select it always. Tests run from source, then a wheel is built in an isolated source copy and included in the CI qualification artifact. This is package qualification, not a release. Examples declaring needs: [cadlib] are rebuilt on cadlib changes.
+
 ## Internal modules
 
 Each module has ci.yml, pyproject.toml, src/ and tests/. Discovery uses module-local ci.yml; kind: python; impact: self or full; optional watch paths. Tests execute from source using unittest. CI installs ordinary third-party dependencies declared in pyproject.toml for selected modules only. The verification package is local source, not an external Git dependency. No root test suite. Verification is a normal Python module at modules/verification, selectable by its id; example-specific expectations belong with the example.
