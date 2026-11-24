@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/9-cadlib-owner
-modules: [ci]
-library: true
+branch: issue/12-site-layout
+modules: [pages]
+library: false
 examples: []
 tasks: [test]

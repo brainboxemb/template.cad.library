@@ -1,15 +1,21 @@
 [[main]]
 name = "Documentation"
 pageRef = "/docs"
-weight = 1
+weight = 10
 
 [[main]]
 name = "Examples"
 pageRef = "/examples"
-weight = 2
+weight = 20
 
 [[main]]
 name = "Search"
-weight = 3
+weight = 30
 [main.params]
 type = "search"
+
+[[main]]
+name = "Theme"
+weight = 40
+[main.params]
+type = "theme-toggle"
