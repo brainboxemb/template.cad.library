@@ -1,4 +1,4 @@
 schema: 1
 branch: issue/4-library-verification-layout
-modules: [ci]
+modules: [ci, verification]
 tasks: [test]

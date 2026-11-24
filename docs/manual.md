@@ -17,7 +17,7 @@ Use modules: all for all modules. If the branch does not match, run full. Main a
 
 ## Internal modules
 
-Each module has ci.yml, pyproject.toml, src/ and tests/. Discovery uses module-local ci.yml; kind: python; impact: self or full; optional watch paths. Tests execute from source using unittest. No root test suite.
+Each module has ci.yml, pyproject.toml, src/ and tests/. Discovery uses module-local ci.yml; kind: python; impact: self or full; optional watch paths. Tests execute from source using unittest. No root test suite. Verification is a normal Python module at modules/verification, selectable by its id; example-specific expectations belong with the example.
 
 ## Pages
 
@@ -27,4 +27,4 @@ Configure repository Pages to serve gh-pages at its root. A token or deployment 
 
 ## Future extensions
 
-Forge library and examples are separate owners. Define their selection, verification, artifacts and documentation contracts before migration.
+The CAD library (cadlib) and examples are separate owners. Define their selection, verification, artifacts and documentation contracts before migration.

@@ -14,8 +14,7 @@ modules/
   merge-policy/
   pages/
   builder-<engine>/        # independent Python capability; planned
-verification/
-  <id>/
+  verification/
     ci.yml
     pyproject.toml
     src/<package>/
@@ -50,12 +49,12 @@ Use the existing CAD model template and `lib.py.cad.ci` implementations as refer
 ## Verification
 
 - `lib.py.cad.verification` is the initial dependency for generic comparisons, evidence, reports and engine-specific verification adapters.
-- `verification/<id>/` owns reusable consumer-specific verification behavior, with its own configuration, source and unit tests.
+- `modules/verification/` owns reusable consumer-specific verification behavior as a normal independently selectable Python module. Organize checks and adapters inside its package; split into additional sibling modules only if a concrete independent ownership or execution need arises.
 - `examples/<id>/verification/` owns the specific expectations, tolerances, views and mutation definitions. It is data, not a second verification library.
 - A verifier receives built artifacts or explicit measured values and explicit expectations. It does not rebuild a model, publish pages or implement CI selection. Generic pass/fail/error and evidence mechanics remain in the verification library.
-- Actual CI selection of library, examples and verification owners, dependency propagation and verification task execution will be implemented explicitly; they are not aliases for model-project items.
+- Module selection and unit tests use the existing Python-module mechanism. Library and example selection, dependency propagation, external verification dependency installation and CAD verification task execution will be implemented explicitly.
 
-The concrete `verification/_template/` is a copyable module starter, deliberately not a registered verification item. It demonstrates a check using the existing verification package and positive/negative tests. The starter is not a substitute for CAD verification or a qualified engine adapter.
+The concrete `modules/verification/` starter demonstrates a consumer check that delegates to the existing verification package. The module is registered with normal CI discovery. Unit tests verify the delegation boundary without external dependencies; integration tests exercise the pinned external package when installed, otherwise explicitly skip. Wiring that dependency into CI remains open. This is not a qualified CAD verification adapter.
 
 ## Dependency boundary
 

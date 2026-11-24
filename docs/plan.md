@@ -7,7 +7,7 @@
 
 ## Next
 
-- Wire cadlib packaging/unit tests and verification module tests into CI.
+- Wire cadlib packaging/unit tests into CI and qualify the external verification dependency and integration tests. The verification module itself uses normal module discovery and selection.
 - Implement standard Python/OpenSCAD, BOSL, CadQuery, build123d and SolidCraft builders; confirm runtime/toolchain pins and qualify incrementally.
 - Integrate examples, explicit verification actions, example-owned expectations and generated build scopes.
 - Decide whether the generic verification library remains independent or is reorganized; preserve engine-neutral verification.
