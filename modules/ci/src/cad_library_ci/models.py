@@ -134,7 +134,10 @@ def discover_models(repo, project, modules):
         data = mapping(path)
         if data.get("kind") == "group":
             continue
-        if type(data.get("process", True)) is not bool or not data.get("process", True):
+        process = data.get("process", True)
+        if type(process) is not bool:
+            raise ConfigError(f"process must be boolean: {path}")
+        if not process:
             continue
         model_id = data.get("id")
         if not isinstance(model_id, str) or not _ID.fullmatch(model_id) or model_id in seen:
@@ -190,6 +193,11 @@ def discover_models(repo, project, modules):
             builder_needs = bc.get("needs", [])
             if not isinstance(builder_needs, list) or not all(isinstance(n, str) and n in by_module for n in builder_needs):
                 raise ConfigError(f"invalid builder dependencies: {builder}")
+            engine_python = bc.get("python")
+            if engine_python is not None:
+                engine_path = Path(engine_python)
+                if not isinstance(engine_python, str) or not engine_path.is_absolute() or ".." in engine_path.parts:
+                    raise ConfigError(f"invalid runtime interpreter for {builder}")
             use_preview = item.get("preview", True)
             if type(use_preview) is not bool:
                 raise ConfigError(f"implementation preview must be boolean: {path}")
@@ -201,7 +209,7 @@ def discover_models(repo, project, modules):
                 _owned_file(model_root, item.get("source")),
                 bc["runtime"],
                 bc["entrypoint"],
-                bc.get("python"),
+                engine_python,
                 preview_entry if use_preview else None,
                 preview_adapter if use_preview else None,
                 impl_modules,
