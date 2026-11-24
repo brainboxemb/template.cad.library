@@ -27,6 +27,8 @@ The policy chooses:
 
 Do not use the direct GitHub merge API, auto-merge, a UI/manual fallback, or manual squash/merge/rebase selection. If `/merge` fails, repair the policy path rather than bypassing it.
 
+Repeating `/merge` after a pull request has already been merged is an idempotent successful no-op. A pull request that is closed without being merged is still rejected.
+
 ## Library owner
 
 `cadlib/` is independent of model owners and internal modules. Selecting the library runs its source tests and builds one qualification wheel. This is not a release.
