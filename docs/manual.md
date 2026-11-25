@@ -13,7 +13,7 @@ models: [simple-box]
 tasks: [test]
 ```
 
-Use `modules: all` or `models: all` for full selection. `main` and `dev -> main` promotions run full. Permanent `dev` runs select changes since the last successful integration run; missing history falls back to full.
+Use `modules: all` or `models: all` for full selection. Product-changing `main` commits and `dev -> main` promotions run full. A validated release-metadata-only `main` commit runs only the library + release capability and preserves the previous full stable CAD evidence. Permanent `dev` runs select changes since the last successful integration run; missing history falls back to full.
 
 ### Merge execution
 
@@ -166,33 +166,50 @@ A release is an explicit repository-owner action and never follows
 automatically from normal CI.
 
 Release preparation must not implicitly promote the current `dev` branch.
-Create `release/vX.Y.Z` from stable `main`, change only release-owned
-metadata such as package version/changelog/release-plan state, and open that PR
-directly against `main`. The merge policy permits only `release/*` as a
-short-lived direct-to-main branch.
+Create `release/vX.Y.Z` from stable `main`. A release branch may change only:
 
-If product changes from `dev` need to become stable, promote those changes as
-a separate explicit product-stabilization decision before release preparation;
-do not couple that decision to the version bump itself.
+- `cadlib/pyproject.toml`, with only `project.version` changing;
+- `CHANGELOG.md`.
 
-After the release is published, synchronize `main -> dev` through `/merge`
-so the stable-only version/changelog commit reaches development. Do not rebase
-the shared `dev` branch.
+The release PR targets `main` directly. CI validates the branch diff before
+running only the library owner plus `modules/release`; model owners are not
+selected. Any third path fails closed, and CI also rejects a `pyproject.toml` change that alters anything besides `project.version`. Integration still goes through
+`/merge`, and the merge policy permits only `release/*` as a short-lived
+direct-to-main branch.
 
-The stable source commit must already have a successful full `build/main`
-scope. Its `build-plan.json` must record `library: true`, select every active
-model owner, and all durable owner results must pass at the same source SHA.
+Product changes from `dev` must be stabilized separately through an explicit
+`dev -> main` promotion before release preparation. A release metadata change
+never implies product promotion.
 
-The thin `.github/workflows/release.yml` adapter checks that evidence and then
-delegates publication to released `tool.py.lib.ci v0.2.1`. Package-specific
-validation lives in `cadlib/release.py`; the template default checks the
-package version and writes release notes.
+The full product qualification remains the last durable `build/main` scope.
+A release-only `main` push records `release_only: true` in its candidate,
+runs library/release checks, and deliberately does not replace that durable
+scope. The release validator accepts the requested stable main SHA only when:
+
+1. the retained durable product source is a full library + all-owner PASS;
+2. that product source is on the release SHA's first-parent history;
+3. every stable commit since it is single-parent;
+4. every changed path across those commits is one of the two release metadata
+   files above;
+5. the repository-specific release validator passes at the exact requested SHA.
+
+This permits consecutive metadata-only patch releases to reuse one unchanged
+product qualification while still rejecting any intervening source/model/CI
+change.
 
 Publication is requested on a normal issue with:
 
 ```text
 /release vX.Y.Z <exact-40-character-main-sha>
 ```
+
+The shared publisher still requires that SHA to equal current `main` HEAD and
+creates/verifies the annotated tag plus GitHub Release. After publication,
+synchronize `main -> dev` through `/merge` so version/changelog metadata
+returns to development. Do not rebase the shared `dev` branch.
+
+Update planning/status documentation on `dev` after the release; do not add
+`docs/plan.md` to the stable release-metadata commit.
 
 Pages is not consulted and is not release evidence. The release adapter must
 not reimplement tag creation, GitHub Release creation, stable-head checks or
