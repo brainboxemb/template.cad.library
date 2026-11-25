@@ -21,4 +21,7 @@ class WorkflowTests(unittest.TestCase):
             release,
         )
         self.assertIn("validator_path: cadlib/release.py", release)
+        self.assertIn("--source-root", release)
+        self.assertIn("path: source", release)
+        self.assertIn("fetch-depth: 0", release)
         self.assertNotIn("tool.cad.ci", release)
