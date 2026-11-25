@@ -164,6 +164,15 @@ Do not reintroduce a permanent-branch `verify -> publish-build -> dispatch-pages
 
 Pages is separate from CAD CI. Hugo consumes `models/` metadata and the corresponding durable build scope. Examples and Verification are purpose-driven public views. Owners with both purposes appear in both views without duplicating physical ownership or generated artifacts. When implementation results contain named `verification_stages`, Pages renders each stage status and links the stage-local durable report. Legacy/single-stage results remain supported through the aggregate verification status and compatibility report link.
 
+Homepage content is generated rather than authored in the Hugo layout. Edit
+`site/home.yml` to declare the ordered homepage blocks. The Pages preparation
+step validates that source and generates `data/home.json` inside the temporary
+Hugo site. `site/layouts/home.html` renders that manifest with the normal Hugo
+templates and CSS. Use `route` for repository-local destinations so Hugo can
+apply the active base URL; use `url` only for absolute HTTPS destinations.
+Changing homepage labels, text, links or block order must not require editing
+the layout.
+
 Stable content is published at `/` and development content at `/dev/`.
 
 ## Releases
