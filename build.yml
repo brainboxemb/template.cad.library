@@ -1,6 +1,6 @@
 schema: 1
-branch: fix/67-workflow-dispatch-release-only
-modules: [ci, build]
-library: false
-models: []
+branch: feature/73-experimental-development
+modules: all
+library: true
+models: all
 tasks: [test]
