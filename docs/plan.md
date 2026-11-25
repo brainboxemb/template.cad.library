@@ -4,7 +4,7 @@
 
 ### #73 — optional experimental integration line
 
-Implement the `exp` branch contract tracked in [#73](https://github.com/brainboxemb/template.cad.library/issues/73). Preserve stable release semantics. Qualify merge policy, CI/history, build publication, Pages and cleanup before Forge adoption.
+Implement the `exp` branch contract tracked in [#73](https://github.com/brainboxemb/template.cad.library/issues/73). Preserve stable release semantics. Qualify merge policy, CI/history, build publication, Pages and cleanup before Forge adoption.\n\nSmoke qualification is intentionally performed through a real temporary branch into permanent `exp`; the resulting `exp` build and `/exp/` Pages scope are the acceptance evidence.
 
 ### #67 — preserve stable full baseline for workflow-dispatched release-only builds
 
