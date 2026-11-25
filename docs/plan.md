@@ -2,46 +2,16 @@
 
 ## Now
 
-### #63 — restore generated homepage ownership
+### #62 — avoid full model qualification for history-only main -> dev sync
 
-Repair the shared Pages/Hugo boundary before propagating further Forge homepage
-changes:
+Keep the accepted stable release flow, but remove the unnecessary full model
+qualification when already-qualified stable-only history is synchronized back
+to `dev`.
 
-- declare homepage composition in repository source metadata;
-- validate and project that declaration through `modules/pages`;
-- render the generated manifest through generic Hugo templates and CSS;
-- keep consumer-specific labels, destinations and copy out of `home.html`;
-- prove source changes alter rendered HTML without layout edits;
-- consume the qualified contract in Forge #128 after the template correction is
-  merged to `dev`.
-
-This recovery work takes precedence over further consumer-specific Pages
-changes because the current homepage layout encodes the wrong ownership model.
-
-### #47 — separate release metadata from product promotion
-
-Complete and qualify the generic stable-main release lane:
-
-- normal product work remains short-lived branch -> `dev`, with explicit
-  `dev -> main` promotion only when product stabilization is intended;
-- `release/vX.Y.Z` starts from stable `main`;
-- release branches may change only `CHANGELOG.md` and
-  `cadlib/pyproject.toml` (`project.version` only);
-- release PR/main-push qualification selects library + release only;
-- release-only stable commits preserve the prior full `build/main` product
-  evidence instead of rebuilding unchanged model owners;
-- release validation proves every stable commit since that durable baseline is
-  linear and metadata-only;
-- publication still targets exact current `main` HEAD;
-- after publication synchronize `main -> dev`; never rebase permanent
-  branches;
-- treat `release/*` as a first-class temporary branch: automatic post-merge
-  cleanup and manual sweep must prove it merged to stable `main`, while normal
-  temporary branches must prove they merged to `dev`.
-
-After #47 is accepted on `dev`, promote the generic policy/capability to
-template `main` so issue-comment merge policy can actually authorize future
-`release/* -> main` integrations.
+The lightweight path must prove that synchronized commits were already accepted
+on stable `main`, contain no product/source/model delta that requires normal
+qualification, and fail closed otherwise. Normal `dev -> main` promotion
+remains full.
 
 ## Qualified baseline
 
@@ -56,12 +26,5 @@ template `main` so issue-comment merge policy can actually authorize future
 - every source-branch integration is executed through local `/merge` policy;
 - generic durable library release qualification and shared
   `tool.py.lib.ci` publication are already accepted;
-- merge policy now has the `release/* -> main` branch classification on
-  `dev`; #47 completes the evidence/selection half before stable promotion.
-
-## Next
-
-1. consume accepted #47 in canonical `lib.py.solidcraft.forge` (#98);
-2. then resume the Forge Pages quality phase;
-3. keep unrelated historical template migration work out of this release-flow
-   change.
+- the #47 stable-main release branch flow is accepted on template `main`
+  and consumed by canonical Forge.
