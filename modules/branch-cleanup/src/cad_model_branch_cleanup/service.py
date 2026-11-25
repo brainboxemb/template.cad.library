@@ -33,8 +33,9 @@ def sweep(client, *, config: CleanupConfig) -> tuple[str, ...]:
         if eligible_sweep(
             branch=branch,
             has_open_pr=client.open_pr_exists(branch),
-            has_merged_pr_to_development=client.merged_pr_to(
-                branch, config.development
+            has_merged_pr_to_permanent=(
+                client.merged_pr_to(branch, config.development)
+                or client.merged_pr_to(branch, config.stable)
             ),
             config=config,
         ):
