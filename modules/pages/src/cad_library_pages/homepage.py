@@ -107,9 +107,6 @@ def _block(value, *, index: int) -> dict:
         normalized = []
         for i, item in enumerate(items):
             destination = _destination(item, where=f"{where}.items[{i}]")
-            destination["title"] = _text(
-                item.get("title"), where=f"{where}.items[{i}].title"
-            )
             destination["description"] = _text(
                 item.get("description"),
                 where=f"{where}.items[{i}].description",
