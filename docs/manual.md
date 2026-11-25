@@ -168,12 +168,12 @@ automatically from normal CI.
 Release preparation must not implicitly promote the current `dev` branch.
 Create `release/vX.Y.Z` from stable `main`. A release branch may change only:
 
-- `cadlib/pyproject.toml`;
+- `cadlib/pyproject.toml`, with only `project.version` changing;
 - `CHANGELOG.md`.
 
 The release PR targets `main` directly. CI validates the branch diff before
 running only the library owner plus `modules/release`; model owners are not
-selected. Any third path fails closed. Integration still goes through
+selected. Any third path fails closed, and CI also rejects a `pyproject.toml` change that alters anything besides `project.version`. Integration still goes through
 `/merge`, and the merge policy permits only `release/*` as a short-lived
 direct-to-main branch.
 
