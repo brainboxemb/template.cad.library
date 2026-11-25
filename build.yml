@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/45-library-release
-modules: [ci, release]
-library: true
+branch: issue/63-generated-homepage
+modules: [ci, pages]
+library: false
 models: []
 tasks: [test]
