@@ -1,23 +1,80 @@
 {{ define "main" }}
-<main class="cad-page-shell cad-home">
-  <section class="cad-hero">
-    <p class="cad-eyebrow">CAD library</p>
-    <h1>{{ site.Title }}</h1>
-    <p>Explore the library documentation, practical examples and verification evidence, including model source and built CAD geometry.</p>
-    <div class="cad-actions">
-      <a class="cad-button" href="{{ "docs/" | relURL }}">Documentation</a>
-      <a class="cad-button cad-button-secondary" href="{{ "examples/" | relURL }}">Browse examples</a>
-      <a class="cad-button cad-button-secondary" href="{{ "verification/" | relURL }}">Verification</a>
-    </div>
-  </section>
-  {{ $examples := where site.RegularPages "Section" "examples" }}
-  {{ if $examples }}
-  <section class="cad-section">
-    <div class="cad-section-heading"><h2>Examples</h2><p>Source-owned examples and published build evidence.</p></div>
-    <div class="cad-model-grid">
-      {{ range $examples.ByWeight }}{{ partial "cad/model-card.html" . }}{{ end }}
-    </div>
-  </section>
+{{ $home := site.Data.home }}
+<main class="cad-page-shell cad-home" data-generated-homepage>
+  {{ range $block := $home.blocks }}
+    {{ if eq $block.type "hero" }}
+      <section class="cad-hero">
+        <p class="cad-eyebrow">{{ $block.eyebrow }}</p>
+        <h1>{{ $block.title }}</h1>
+        <p>{{ $block.lead }}</p>
+        {{ with $block.badges }}
+          {{ if gt (len .) 0 }}
+            <div class="cad-badges">
+              {{ range . }}<span>{{ . }}</span>{{ end }}
+            </div>
+          {{ end }}
+        {{ end }}
+        {{ with $block.actions }}
+          {{ if gt (len .) 0 }}
+            <div class="cad-actions">
+              {{ range . }}
+                {{ $href := .url }}
+                {{ if .route }}{{ $href = (.route | relURL) }}{{ end }}
+                <a class="cad-button{{ if not .primary }} cad-button-secondary{{ end }}"
+                   href="{{ $href }}"{{ if .external }} target="_blank" rel="noopener noreferrer"{{ end }}>{{ .label }}</a>
+              {{ end }}
+            </div>
+          {{ end }}
+        {{ end }}
+      </section>
+    {{ else if eq $block.type "flow" }}
+      <section class="cad-section">
+        <div class="cad-section-heading">
+          <h2>{{ $block.title }}</h2>
+          <p>{{ $block.description }}</p>
+        </div>
+        <div class="cad-home-flow">
+          {{ range $index, $step := $block.steps }}
+            <div class="cad-home-flow-step">
+              <span class="cad-home-flow-number">{{ add $index 1 }}</span>
+              <h3>{{ $step.title }}</h3>
+              <p>{{ $step.description }}</p>
+            </div>
+          {{ end }}
+        </div>
+      </section>
+    {{ else if eq $block.type "links" }}
+      <section class="cad-section">
+        <div class="cad-section-heading">
+          <h2>{{ $block.title }}</h2>
+          <p>{{ $block.description }}</p>
+        </div>
+        <div class="cad-home-link-grid">
+          {{ range $item := $block.items }}
+            {{ $href := $item.url }}
+            {{ if $item.route }}{{ $href = ($item.route | relURL) }}{{ end }}
+            <a class="cad-home-link-card" href="{{ $href }}"{{ if $item.external }} target="_blank" rel="noopener noreferrer"{{ end }}>
+              {{ with $item.kicker }}<span class="cad-home-link-kicker">{{ . }}</span>{{ end }}
+              <strong>{{ $item.label }}</strong>
+              <span>{{ $item.description }}</span>
+            </a>
+          {{ end }}
+        </div>
+      </section>
+    {{ else if eq $block.type "catalogue" }}
+      {{ $pages := where site.RegularPages "Section" $block.section }}
+      {{ if $pages }}
+        <section class="cad-section">
+          <div class="cad-section-heading">
+            <h2>{{ $block.title }}</h2>
+            <p>{{ $block.description }}</p>
+          </div>
+          <div class="cad-model-grid">
+            {{ range $pages.ByWeight }}{{ partial "cad/model-card.html" . }}{{ end }}
+          </div>
+        </section>
+      {{ end }}
+    {{ end }}
   {{ end }}
 </main>
 {{ end }}

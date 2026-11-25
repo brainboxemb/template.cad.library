@@ -1203,3 +1203,19 @@ html:not(.dark) .hextra-search-trigger{font-size:.9rem}
 @media (max-width: 620px) {
   .cad-visual-grid { grid-template-columns: 1fr; }
 }
+
+
+/* Generated homepage blocks. Content comes from site/home.yml through Pages. */
+.cad-home-flow,.cad-home-link-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:.85rem}
+.cad-home-flow-step,.cad-home-link-card{min-width:0;padding:1rem 1.05rem;border:1px solid var(--cad-line);border-radius:12px;background:var(--cad-card);box-shadow:0 2px 7px rgba(27,56,99,.04)}
+.cad-home-flow-step h3{margin:.35rem 0}
+.cad-home-flow-step p{margin:.35rem 0 0;color:var(--cad-muted);line-height:1.45}
+.cad-home-flow-number{display:inline-flex;align-items:center;justify-content:center;width:1.7rem;height:1.7rem;border-radius:999px;background:var(--cad-soft);color:var(--cad-accent);font-size:.78rem;font-weight:800}
+.cad-home-link-card{display:flex;min-height:145px;flex-direction:column;gap:.4rem;color:var(--cad-ink);text-decoration:none}
+.cad-home-link-card:hover{border-color:#a8c6e7;background:#f8fbff;text-decoration:none}
+.cad-home-link-card strong{font-size:1.05rem}
+.cad-home-link-card>span:last-child{color:var(--cad-muted);line-height:1.45}
+.cad-home-link-kicker{color:var(--cad-accent);font-size:.75rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase}
+.dark .cad-home-flow-step,.dark .cad-home-link-card{border-color:#29384d;background:#101827}
+.dark .cad-home-link-card:hover{background:#152033}
+@media(max-width:560px){.cad-home-flow,.cad-home-link-grid{grid-template-columns:1fr}}

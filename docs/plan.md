@@ -2,6 +2,22 @@
 
 ## Now
 
+### #63 — restore generated homepage ownership
+
+Repair the shared Pages/Hugo boundary before propagating further Forge homepage
+changes:
+
+- declare homepage composition in repository source metadata;
+- validate and project that declaration through `modules/pages`;
+- render the generated manifest through generic Hugo templates and CSS;
+- keep consumer-specific labels, destinations and copy out of `home.html`;
+- prove source changes alter rendered HTML without layout edits;
+- consume the qualified contract in Forge #128 after the template correction is
+  merged to `dev`.
+
+This recovery work takes precedence over further consumer-specific Pages
+changes because the current homepage layout encodes the wrong ownership model.
+
 ### #47 — separate release metadata from product promotion
 
 Complete and qualify the generic stable-main release lane:

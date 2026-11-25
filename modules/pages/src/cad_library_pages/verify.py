@@ -6,6 +6,8 @@ import re
 from pathlib import Path
 import yaml
 
+from .homepage import homepage_manifest
+
 
 def verify(source_root: Path, site: Path, build_scope: Path | None):
     def read(route):
@@ -13,6 +15,24 @@ def verify(source_root: Path, site: Path, build_scope: Path | None):
         if not path.is_file():
             raise RuntimeError(f"missing generated route: {path}")
         return unescape(path.read_text(encoding="utf-8"))
+
+    home = read("")
+    manifest = homepage_manifest(source_root)
+    if "data-generated-homepage" not in home:
+        raise RuntimeError("homepage was not rendered from the generated manifest")
+    homepage_markers = []
+    for block in manifest["blocks"]:
+        homepage_markers.append(block["title"])
+        if block["type"] == "hero":
+            homepage_markers.append(block["eyebrow"])
+            homepage_markers.extend(action["label"] for action in block["actions"])
+        elif block["type"] == "flow":
+            homepage_markers.extend(step["title"] for step in block["steps"])
+        elif block["type"] == "links":
+            homepage_markers.extend(item["label"] for item in block["items"])
+    for marker in homepage_markers:
+        if marker not in home:
+            raise RuntimeError(f"generated homepage content missing: {marker}")
 
     for route, marker in (("", "cad-home"), ("docs", "Documentation"), ("docs/model-pages", "Understand verification"),
                           ("examples", "cad-model-grid"), ("verification", "cad-model-grid")):
