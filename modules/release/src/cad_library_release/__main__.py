@@ -8,12 +8,10 @@ from pathlib import Path
 import re
 import subprocess
 
+from .delta import ReleaseDeltaError, validate_metadata_delta
+
 
 _SHA = re.compile(r"^[0-9a-f]{40}$")
-_RELEASE_METADATA_PATHS = frozenset({
-    "CHANGELOG.md",
-    "cadlib/pyproject.toml",
-})
 
 
 class ReleaseQualificationError(RuntimeError):
@@ -156,28 +154,10 @@ def release_metadata_delta(
                 "release metadata history must be linear and single-parent"
             )
 
-        paths = tuple(
-            line.strip()
-            for line in _git(
-                source_root,
-                "diff",
-                "--name-only",
-                previous,
-                commit,
-                "--",
-            ).stdout.splitlines()
-            if line.strip()
-        )
-        if not paths:
-            raise ReleaseQualificationError(
-                f"release metadata commit has no file changes: {commit}"
-            )
-        unexpected = sorted(set(paths) - _RELEASE_METADATA_PATHS)
-        if unexpected:
-            raise ReleaseQualificationError(
-                "release history changes product/non-release path(s): "
-                + ", ".join(unexpected)
-            )
+        try:
+            paths = validate_metadata_delta(source_root, previous, commit)
+        except ReleaseDeltaError as exc:
+            raise ReleaseQualificationError(str(exc)) from exc
         changed.extend(paths)
         previous = commit
 
