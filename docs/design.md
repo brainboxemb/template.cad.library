@@ -172,18 +172,47 @@ artifact; Pages never substitutes another implementation's preview.
 
 ## Release boundary
 
-Release qualification is separate from normal CI, durable publication and Pages.
+Release qualification is separate from normal product qualification, durable
+publication and Pages.
 
-The template-owned `modules/release` capability reads one materialized
-`build/main` scope and requires the exact requested source SHA, a full build,
-explicit library qualification, every active owner selected, and successful
-owner evidence with matching source provenance. It never creates tags or GitHub
-Releases.
+A product-changing stable source is qualified normally: full model-owner
+selection, library qualification and durable `build/main` evidence. A later
+release metadata commit does not invalidate that product evidence merely
+because package version or changelog text changed.
 
-`.github/workflows/release.yml` is a thin issue-comment adapter. It uses the
-released `tool.py.lib.ci v0.2.1` command parser, checks stable build evidence
-through `modules/release`, and then delegates the tag/GitHub Release
-transaction to that released tool. Consumer-specific package/release-note rules
-live in `cadlib/release.py`.
+The release lane is therefore intentionally narrow:
+
+```text
+qualified main product source
+  -> release/vX.Y.Z from main
+  -> CHANGELOG.md + cadlib/pyproject.toml only
+  -> lightweight library + release PR qualification
+  -> squash to main
+  -> lightweight stable qualification, no build/main replacement
+  -> /release exact-main-sha
+  -> main -> dev synchronization
+```
+
+CI records release-only candidates with `release_only: true`. Build
+publication treats that as a stable-baseline preservation instruction: it
+checks source freshness but leaves the previous full `build/main` scope
+untouched.
+
+The template-owned `modules/release` capability validates that retained scope
+as the product baseline, then validates the exact requested release source
+history. The baseline must remain a full library + all-owner PASS. Every
+first-parent stable commit between baseline and release target must be
+single-parent and may change only `CHANGELOG.md` and
+`cadlib/pyproject.toml`. Any other path requires a new normal full stable
+qualification instead of baseline reuse.
+
+`.github/workflows/release.yml` checks out the exact requested source with
+history, performs that repository/template-owned evidence check, and then
+delegates tag/GitHub Release publication to released `tool.py.lib.ci`.
+Consumer-specific package/release-note rules remain in `cadlib/release.py`.
+
+The shared publisher still requires the requested SHA to equal `main` HEAD.
+The release tag therefore always names a stable commit even when its CAD
+product evidence comes from an unchanged earlier full stable baseline.
 
 Pages and `gh-pages` are not release evidence.
