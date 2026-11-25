@@ -26,5 +26,5 @@ remains full.
 - every source-branch integration is executed through local `/merge` policy;
 - generic durable library release qualification and shared
   `tool.py.lib.ci` publication are already accepted;
-- merge policy now has the `release/* -> main` branch classification on
-  `dev`; #47 completes the evidence/selection half before stable promotion.
+- the #47 stable-main release branch flow is accepted on template `main`
+  and consumed by canonical Forge.
