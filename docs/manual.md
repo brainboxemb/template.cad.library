@@ -28,6 +28,12 @@ The policy chooses:
 
 A normal feature/issue/fix/docs/chore branch may not target `main` directly.
 
+`release/*` is also a temporary branch class. Post-merge cleanup deletes it
+after a successful same-repository merge to `main`; normal temporary branches
+are deleted after their successful merge to `dev`. The manual sweep uses the
+same target rule, so a release branch is never considered safely merged merely
+because it reached development.
+
 Do not use the direct GitHub merge API, auto-merge, a UI/manual fallback, or manual squash/merge/rebase selection. If `/merge` fails, repair the policy path rather than bypassing it.
 
 Repeating `/merge` after a pull request has already been merged is an idempotent successful no-op. A pull request that is closed without being merged is still rejected.
