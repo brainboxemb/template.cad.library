@@ -9,7 +9,7 @@ from .homepage import prepare_homepage
 from .models import prepare_models
 
 
-def build(*, source_root: Path, destination: Path, base_url: str, build_scope: Path | None = None):
+def build(*, source_root: Path, destination: Path, base_url: str, build_scope: Path | None = None, experimental: bool = False):
     source_root = source_root.resolve()
     destination = destination.resolve()
     if build_scope is not None:
@@ -17,6 +17,15 @@ def build(*, source_root: Path, destination: Path, base_url: str, build_scope: P
     with tempfile.TemporaryDirectory(prefix="cad-hugo-") as tmp:
         source = Path(tmp) / "site"
         shutil.copytree(source_root / "site", source)
+        environment = []
+        if experimental:
+            config = source / "config/experimental/params.toml"
+            config.parent.mkdir(parents=True, exist_ok=True)
+            config.write_text(
+                '[banner]\nkey = "experimental"\nmessage = "Experimental development — not a stable release."\n',
+                encoding="utf-8",
+            )
+            environment = ["--environment", "experimental"]
         prepare_homepage(source_root, source)
         prepare_models(source_root, source, build_scope)
         subprocess.run(
@@ -26,6 +35,7 @@ def build(*, source_root: Path, destination: Path, base_url: str, build_scope: P
                 "--destination", str(destination),
                 "--baseURL", base_url,
                 "--minify",
+                *environment,
             ],
             check=True,
         )
@@ -39,12 +49,14 @@ def main():
     parser.add_argument("--destination", type=Path, required=True)
     parser.add_argument("--base-url", required=True)
     parser.add_argument("--build-scope", type=Path)
+    parser.add_argument("--experimental", action="store_true")
     args = parser.parse_args()
     build(
         source_root=args.source_root,
         destination=args.destination,
         base_url=args.base_url,
         build_scope=args.build_scope,
+        experimental=args.experimental,
     )
 
 
