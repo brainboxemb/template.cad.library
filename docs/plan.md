@@ -10,7 +10,7 @@ Complete and qualify the generic stable-main release lane:
   `dev -> main` promotion only when product stabilization is intended;
 - `release/vX.Y.Z` starts from stable `main`;
 - release branches may change only `CHANGELOG.md` and
-  `cadlib/pyproject.toml`;
+  `cadlib/pyproject.toml` (`project.version` only);
 - release PR/main-push qualification selects library + release only;
 - release-only stable commits preserve the prior full `build/main` product
   evidence instead of rebuilding unchanged model owners;
