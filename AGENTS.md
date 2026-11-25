@@ -2,7 +2,7 @@
 
 Read `docs/plan.md`, `docs/design.md` and `docs/manual.md` before changing the repository.
 
-Normal product work starts from `dev` on a temporary branch. Set `build.yml.branch` to the actual branch and select the necessary library, modules and **physical model owners**. Squash normal temporary branches into `dev`; promote `dev` to `main` with a merge commit only when an explicit product stabilization is intended.
+Normal product work starts from `dev` on a temporary branch. Optional experimental work starts from permanent `exp` on a temporary branch; sync `dev -> exp` and integrate completed experiments through `exp -> dev`. Never promote `exp` directly to `main`. Set `build.yml.branch` to the actual branch and select the necessary library, modules and **physical model owners**. Squash normal temporary branches into `dev`; promote `dev` to `main` with a merge commit only when an explicit product stabilization is intended.
 
 Release preparation is separate: create `release/vX.Y.Z` from stable `main` and change only `CHANGELOG.md` and the `project.version` value in `cadlib/pyproject.toml`. Merge that short-lived release branch directly to `main` through `/merge`. Release-only stable commits reuse the previous full `build/main` product qualification; they must not rebuild or replace unchanged model evidence. After publication, synchronize the stable-only release commit back with `main -> dev`. Never rebase the shared permanent `dev` branch.
 
@@ -12,7 +12,8 @@ This repository deliberately does **not** let an agent choose the merge method.
 
 For every source-branch integration:
 
-- short-lived branch -> `dev`;
+- short-lived branch -> `dev` or `exp`;
+- `dev` -> `exp` and `exp` -> `dev`;
 - `dev` -> `main`;
 - exceptional `main` -> `dev`;
 

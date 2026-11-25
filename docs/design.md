@@ -155,9 +155,13 @@ Physical model dependencies name other owner ids. Selection closes transitively 
 
 ## Durable output
 
-Incremental publication replaces selected model owners, preserves untouched active owners with their source provenance and removes deleted owners. Permanent successful runs publish separate `main/` and `dev/` scopes on the generated `build` branch. `build-plan.json` records whether the independent library owner was selected and qualified; stable release qualification requires `library: true` in addition to a full model-owner build.
+Incremental publication replaces selected model owners, preserves untouched active owners with their source provenance and removes deleted owners. Permanent successful runs publish separate `main/`, `dev/` and optional `exp/` scopes on the generated `build` branch. `build-plan.json` records whether the independent library owner was selected and qualified; stable release qualification requires `library: true` in addition to a full model-owner build.
 
-Workflow roles mirror `template.cad.model-project`: pull requests run only the `ci` qualification job; permanent `dev`/`main` events run one `build` job that executes the selected project work and publishes the durable scope. Pages is not a downstream job in that build graph: after successful publication the build only dispatches the independent `pages.yml` workflow and finishes without waiting for it.
+Workflow roles mirror `template.cad.model-project`: pull requests run only the `ci` qualification job; permanent `dev`/`main`/`exp` events run one `build` job that executes the selected project work and publishes the durable scope. Pages is not a downstream job in that build graph: after successful publication the build only dispatches the independent `pages.yml` workflow and finishes without waiting for it.
+
+## Experimental development line
+
+`exp` is an optional permanent integration branch, not a release source. Temporary work branches squash into `dev` or `exp`; `dev -> exp` and `exp -> dev` use merge commits and full PR qualification. `exp -> main` is forbidden. Incremental permanent builds use the history of their own source branch. The generated build branch keeps `exp/` isolated and Pages assembles `/exp/` only when the source branch exists. The single Pages publication remains serialized because it replaces the whole site.
 
 ## Presentation
 
