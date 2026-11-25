@@ -163,6 +163,15 @@ Workflow roles mirror `template.cad.model-project`: pull requests run only the `
 
 Hugo reads model metadata plus durable build output. It never executes CAD or verification. Each declared `model.yml.purpose` projects the owner into Examples and/or Verification. Legacy Models routes redirect to the matching purpose view. Pages must not copy generated CAD artifacts.
 
+Homepage composition follows the same generated Pages boundary. Repository-owned
+`site/home.yml` declares typed presentation blocks and destinations.
+`modules/pages` validates that source and writes the prepared Hugo
+`data/home.json`. The Hugo homepage layout owns only rendering and styling of
+the generated blocks; it must not own consumer-specific copy, routes or URLs.
+The generated contract currently supports `hero`, `flow`, `links` and
+`catalogue` blocks, with base-relative routes distinguished from absolute
+HTTPS destinations.
+
 The custom model presentation continues to use the established Hextra CAD baseline from `exp.2026-015.hugo-cad-site` and `template.cad.model-project`.
 
 Optional `model.yml.presentation_primary` selects a declared implementation for
@@ -193,10 +202,13 @@ qualified main product source
   -> main -> dev synchronization
 ```
 
-CI records release-only candidates with `release_only: true`. Build
-publication treats that as a stable-baseline preservation instruction: it
-checks source freshness but leaves the previous full `build/main` scope
-untouched.
+CI records release-only candidates with `release_only: true`. Stable
+classification is based on the single-parent source delta, not on whether the
+permanent run was triggered by `push` or merge-policy `workflow_dispatch`.
+A metadata-only delta selects release + library and zero models; a merge commit
+or any product path remains full/fail-closed. Build publication treats
+`release_only: true` as a stable-baseline preservation instruction: it checks
+source freshness but leaves the previous full `build/main` scope untouched.
 
 The template-owned `modules/release` capability validates that retained scope
 as the product baseline, then validates the exact requested release source

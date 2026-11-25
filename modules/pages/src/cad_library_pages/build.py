@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import tempfile
 
+from .homepage import prepare_homepage
 from .models import prepare_models
 
 
@@ -16,6 +17,7 @@ def build(*, source_root: Path, destination: Path, base_url: str, build_scope: P
     with tempfile.TemporaryDirectory(prefix="cad-hugo-") as tmp:
         source = Path(tmp) / "site"
         shutil.copytree(source_root / "site", source)
+        prepare_homepage(source_root, source)
         prepare_models(source_root, source, build_scope)
         subprocess.run(
             [

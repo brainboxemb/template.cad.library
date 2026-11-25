@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/45-library-release
-modules: [ci, release]
-library: true
+branch: fix/67-workflow-dispatch-release-only
+modules: [ci, build]
+library: false
 models: []
 tasks: [test]
