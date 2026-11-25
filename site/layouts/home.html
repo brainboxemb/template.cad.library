@@ -55,7 +55,7 @@
             {{ if $item.route }}{{ $href = ($item.route | relURL) }}{{ end }}
             <a class="cad-home-link-card" href="{{ $href }}"{{ if $item.external }} target="_blank" rel="noopener noreferrer"{{ end }}>
               {{ with $item.kicker }}<span class="cad-home-link-kicker">{{ . }}</span>{{ end }}
-              <strong>{{ $item.title }}</strong>
+              <strong>{{ $item.label }}</strong>
               <span>{{ $item.description }}</span>
             </a>
           {{ end }}
