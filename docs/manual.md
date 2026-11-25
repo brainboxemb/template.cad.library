@@ -13,7 +13,7 @@ models: [simple-box]
 tasks: [test]
 ```
 
-Use `modules: all` or `models: all` for full selection. Product-changing `main` commits and `dev -> main` promotions run full. A validated release-metadata-only `main` commit runs only the library + release capability and preserves the previous full stable CAD evidence. This classification is identical whether the permanent stable run arrived as a normal `push` or as the merge-policy `workflow_dispatch`; the source commit itself must still be a single-parent metadata-only delta. Permanent `dev` runs select changes since the last successful integration run; missing history falls back to full.
+Use `modules: all` or `models: all` for full selection. Product-changing `main` commits and `dev -> main` promotions run full. A validated release-metadata-only `main` commit runs only the library + release capability and preserves the previous full stable CAD evidence. This classification is identical whether the permanent stable run arrived as a normal `push` or as the merge-policy `workflow_dispatch`; the source commit itself must still be a single-parent metadata-only delta. Permanent `dev` and `exp` runs select changes since the last successful integration run; missing history falls back to full.
 
 ### Merge execution
 
@@ -21,7 +21,8 @@ The merge shape is policy-owned, not agent-selected. For every source-branch int
 
 The policy chooses:
 
-- normal short-lived branch -> `dev`: squash;
+- normal short-lived branch -> `dev` or `exp`: squash;
+- `dev` -> `exp` synchronization and `exp` -> `dev` integration: merge commit, full PR qualification;
 - `release/*` -> `main`: squash;
 - explicit product promotion `dev` -> `main`: merge commit;
 - stable synchronization `main` -> `dev`: merge commit.
@@ -30,7 +31,7 @@ A normal feature/issue/fix/docs/chore branch may not target `main` directly.
 
 `release/*` is also a temporary branch class. Post-merge cleanup deletes it
 after a successful same-repository merge to `main`; normal temporary branches
-are deleted after their successful merge to `dev`. The manual sweep uses the
+are deleted after their successful merge to `dev` or `exp`. The manual sweep uses the
 same target rule, so a release branch is never considered safely merged merely
 because it reached development.
 
@@ -155,7 +156,7 @@ Pull requests run the `ci` qualification job only, may upload candidate evidence
 The thin workflow shape matches `template.cad.model-project`:
 
 - pull requests run the `ci` job only and never publish generated branches;
-- permanent `dev`/`main` events run one `build` job that executes `cad_library_ci` and publishes `build/qualification` through `cad_library_build.publish`;
+- permanent `dev`/`main`/`exp` events run one `build` job that executes `cad_library_ci` and publishes `build/qualification` through `cad_library_build.publish`;
 - after successful build publication, that job dispatches `pages.yml` and finishes without waiting for Pages.
 
 Do not reintroduce a permanent-branch `verify -> publish-build -> dispatch-pages` job chain or pass qualification output between those permanent-branch jobs as an Actions artifact.
@@ -173,7 +174,7 @@ apply the active base URL; use `url` only for absolute HTTPS destinations.
 Changing homepage labels, text, links or block order must not require editing
 the layout.
 
-Stable content is published at `/` and development content at `/dev/`.
+Stable content is published at `/` and development content at `/dev/`. If the optional permanent `exp` branch exists, its experimental content is published at `/exp/`, with separate build evidence under `build/exp/`. Experimental development cannot release or promote directly to `main`. Create `exp` from a qualified `dev` only after the template support has reached `main`. Use a new temporary branch for each experimental work item; synchronize using `/merge`.
 
 ## Releases
 

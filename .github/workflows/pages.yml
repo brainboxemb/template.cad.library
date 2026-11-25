@@ -48,6 +48,9 @@ jobs:
           --build-scope prepared-build/${{ github.base_ref }}
           --base-url "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ github.base_ref == 'dev' && 'dev/' || github.base_ref == 'exp' && 'exp/' || '' }}"
           ${{ github.base_ref == 'exp' && '--experimental' || '' }}
+      - name: Check experimental banner
+        if: github.base_ref == 'exp'
+        run: grep -Fq 'Experimental development' generated-site/index.html
       - name: Check rendered routes and evidence links
         env:
           PYTHONPATH: modules/pages/src
@@ -155,6 +158,13 @@ jobs:
           --destination generated-site/exp
           --base-url "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/exp/"
           --experimental
+      - name: Verify experimental site
+        if: steps.exp.outputs.exists == 'true'
+        env:
+          PYTHONPATH: source-exp/modules/pages/src
+        run: |
+          grep -Fq 'Experimental development' generated-site/exp/index.html
+          python -m cad_library_pages.verify --source-root source-exp --site generated-site/exp --build-scope prepared-build/exp
       - name: Publish Pages branch
         env:
           PYTHONPATH: source-main/modules/pages/src
