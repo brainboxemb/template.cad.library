@@ -2,6 +2,22 @@
 
 ## Now
 
+### #67 — preserve stable full baseline for workflow-dispatched release-only builds
+
+Merge policy starts permanent stable qualification with
+`workflow_dispatch`. Treat a single-parent metadata-only stable commit from
+that dispatch exactly like the already-qualified push case:
+
+- select only `release` + library;
+- select zero models;
+- record `full: false` and `release_only: true`;
+- preserve the previous full `build/main` product evidence;
+- keep product-changing stable commits and merge commits full/fail-closed.
+
+After #67 is qualified on `dev`, promote the template correction to
+`main` so canonical consumers such as Forge can consume it before their next
+release.
+
 ### #62 — avoid full model qualification for history-only main -> dev sync
 
 Keep the accepted stable release flow, but remove the unnecessary full model
