@@ -202,10 +202,13 @@ qualified main product source
   -> main -> dev synchronization
 ```
 
-CI records release-only candidates with `release_only: true`. Build
-publication treats that as a stable-baseline preservation instruction: it
-checks source freshness but leaves the previous full `build/main` scope
-untouched.
+CI records release-only candidates with `release_only: true`. Stable
+classification is based on the single-parent source delta, not on whether the
+permanent run was triggered by `push` or merge-policy `workflow_dispatch`.
+A metadata-only delta selects release + library and zero models; a merge commit
+or any product path remains full/fail-closed. Build publication treats
+`release_only: true` as a stable-baseline preservation instruction: it checks
+source freshness but leaves the previous full `build/main` scope untouched.
 
 The template-owned `modules/release` capability validates that retained scope
 as the product baseline, then validates the exact requested release source
