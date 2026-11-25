@@ -1,5 +1,5 @@
 schema: 1
-branch: feature/73-experimental-development
+branch: feature/73-exp-smoke
 modules: all
 library: true
 models: all
