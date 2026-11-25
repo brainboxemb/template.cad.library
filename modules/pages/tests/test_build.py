@@ -27,3 +27,21 @@ blocks:
                 (destination / "index.html").touch()
                 build(source_root=root, destination=destination, base_url="https://example.org/dev/")
                 self.assertIn("https://example.org/dev/", run.call_args.args[0])
+
+    def test_experimental_banner_is_prepared_only_in_temporary_site(self):
+        with TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            (root / "site").mkdir()
+            destination = root / "out"
+            destination.mkdir()
+            (destination / "index.html").touch()
+
+            def inspect_hugo(command, **kwargs):
+                source = Path(command[command.index("--source") + 1])
+                config = source / "config/experimental/params.toml"
+                self.assertIn("Experimental development", config.read_text())
+                self.assertIn("experimental", command)
+
+            with patch("cad_library_pages.build.prepare_homepage"), patch("cad_library_pages.build.prepare_models"), patch("cad_library_pages.build.subprocess.run", side_effect=inspect_hugo):
+                build(source_root=root, destination=destination, base_url="https://example.org/exp/", experimental=True)
+            self.assertFalse((root / "site/config/experimental/params.toml").exists())
