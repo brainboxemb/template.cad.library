@@ -4,7 +4,7 @@ Read `docs/plan.md`, `docs/design.md` and `docs/manual.md` before changing the r
 
 Normal product work starts from `dev` on a temporary branch. Set `build.yml.branch` to the actual branch and select the necessary library, modules and **physical model owners**. Squash normal temporary branches into `dev`; promote `dev` to `main` with a merge commit only when an explicit product stabilization is intended.
 
-Release preparation is separate: create `release/vX.Y.Z` from stable `main`, change only release-owned metadata, and merge that short-lived release branch directly to `main` through `/merge`. After publication, synchronize the stable-only release commit back with `main -> dev`. Never rebase the shared permanent `dev` branch.
+Release preparation is separate: create `release/vX.Y.Z` from stable `main` and change only `cadlib/pyproject.toml` and `CHANGELOG.md`. Merge that short-lived release branch directly to `main` through `/merge`. Release-only stable commits reuse the previous full `build/main` product qualification; they must not rebuild or replace unchanged model evidence. After publication, synchronize the stable-only release commit back with `main -> dev`. Never rebase the shared permanent `dev` branch.
 
 ## Mandatory merge execution rule
 
