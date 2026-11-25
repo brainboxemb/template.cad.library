@@ -202,8 +202,8 @@ The template-owned `modules/release` capability validates that retained scope
 as the product baseline, then validates the exact requested release source
 history. The baseline must remain a full library + all-owner PASS. Every
 first-parent stable commit between baseline and release target must be
-single-parent and may change only `CHANGELOG.md` and
-`cadlib/pyproject.toml`. Any other path requires a new normal full stable
+single-parent and may change only `CHANGELOG.md` and the `project.version`
+value in `cadlib/pyproject.toml`. Any other path requires a new normal full stable
 qualification instead of baseline reuse.
 
 `.github/workflows/release.yml` checks out the exact requested source with
