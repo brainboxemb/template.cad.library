@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/63-generated-homepage
-modules: [ci, pages]
+branch: fix/67-workflow-dispatch-release-only
+modules: [ci, build]
 library: false
 models: []
 tasks: [test]

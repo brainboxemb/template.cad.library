@@ -13,7 +13,7 @@ models: [simple-box]
 tasks: [test]
 ```
 
-Use `modules: all` or `models: all` for full selection. Product-changing `main` commits and `dev -> main` promotions run full. A validated release-metadata-only `main` commit runs only the library + release capability and preserves the previous full stable CAD evidence. Permanent `dev` runs select changes since the last successful integration run; missing history falls back to full.
+Use `modules: all` or `models: all` for full selection. Product-changing `main` commits and `dev -> main` promotions run full. A validated release-metadata-only `main` commit runs only the library + release capability and preserves the previous full stable CAD evidence. This classification is identical whether the permanent stable run arrived as a normal `push` or as the merge-policy `workflow_dispatch`; the source commit itself must still be a single-parent metadata-only delta. Permanent `dev` runs select changes since the last successful integration run; missing history falls back to full.
 
 ### Merge execution
 
