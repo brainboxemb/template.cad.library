@@ -1,0 +1,22 @@
+schema: 1
+
+blocks:
+  - type: hero
+    eyebrow: CAD library
+    title: CAD library
+    lead: >-
+      Explore the library documentation, practical examples and verification
+      evidence, including model source and built CAD geometry.
+    actions:
+      - label: Documentation
+        route: docs/
+        primary: true
+      - label: Browse examples
+        route: examples/
+      - label: Verification
+        route: verification/
+
+  - type: catalogue
+    title: Examples
+    description: Source-owned examples and published build evidence.
+    section: examples
