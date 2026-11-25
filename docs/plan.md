@@ -18,7 +18,10 @@ Complete and qualify the generic stable-main release lane:
   linear and metadata-only;
 - publication still targets exact current `main` HEAD;
 - after publication synchronize `main -> dev`; never rebase permanent
-  branches.
+  branches;
+- treat `release/*` as a first-class temporary branch: automatic post-merge
+  cleanup and manual sweep must prove it merged to stable `main`, while normal
+  temporary branches must prove they merged to `dev`.
 
 After #47 is accepted on `dev`, promote the generic policy/capability to
 template `main` so issue-comment merge policy can actually authorize future
