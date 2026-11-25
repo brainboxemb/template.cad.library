@@ -9,6 +9,10 @@ from cad_library_release.__main__ import (
     validate_build_scope,
     validate_release_source,
 )
+from cad_library_release.delta import (
+    ReleaseDeltaError,
+    validate_metadata_delta,
+)
 
 
 SHA = "a" * 40
@@ -150,6 +154,25 @@ class ReleaseQualificationTests(unittest.TestCase):
                 {"CHANGELOG.md", "cadlib/pyproject.toml"},
             )
             self.assertNotEqual(first, target)
+
+    def test_rejects_non_version_pyproject_change(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            repo, base = self._repo(root)
+            (repo / "cadlib" / "pyproject.toml").write_text(
+                '[project]\n'
+                'name = "demo"\n'
+                'version = "1.0.1"\n'
+                'dependencies = ["new-runtime"]\n',
+                encoding="utf-8",
+            )
+            target = self._commit(repo, "change release version and dependency")
+
+            with self.assertRaisesRegex(
+                ReleaseDeltaError,
+                "more than project.version",
+            ):
+                validate_metadata_delta(repo, base, target)
 
     def test_rejects_product_change_after_full_baseline(self):
         with tempfile.TemporaryDirectory() as tmp:
