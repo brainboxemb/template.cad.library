@@ -22,7 +22,7 @@ def eligible_post_merge(
     return (
         merged
         and same_repository
-        and base == config.development
+        and base in config.permanent
         and is_temporary(head, config)
     )
 
@@ -31,11 +31,11 @@ def eligible_sweep(
     *,
     branch: str,
     has_open_pr: bool,
-    has_merged_pr_to_development: bool,
+    has_merged_pr_to_permanent: bool,
     config: CleanupConfig,
 ) -> bool:
     return (
         is_temporary(branch, config)
         and not has_open_pr
-        and has_merged_pr_to_development
+        and has_merged_pr_to_permanent
     )
