@@ -22,6 +22,7 @@ models/
 modules/
   ci/
   build/
+  release/
   pages/
   verification/
   preview/
@@ -44,7 +45,7 @@ A **model directory is the selection and publication owner**. Engine implementat
 purpose: [example, verification]
 ```
 
-Supported values are `example` and `verification`. A model may have either or both. Verification-only models stay out of Pages.
+Supported values are `example` and `verification`. A model may have either or both. Pages projects each declared purpose into its own catalogue; both purposes may refer to the same physical owner.
 
 ## Model execution contract
 
@@ -86,6 +87,10 @@ preview:
 The owner is selected once; CI expands declared implementations and applicable verification stages. `primary` determines canonical owner-level artifacts. Each implementation retains its own build, stage and preview evidence.
 
 The legacy single `verification:` mapping remains supported and maps to one STL verification stage.
+
+## Model-local source contracts
+
+A physical owner may contain `tests/` for source/compiler semantics that are specific to that model. CI runs those tests only when the owner is selected. `cadlib/src` and the model root are available on `PYTHONPATH`; library dependencies are installed only when a tested owner declares `needs: [cadlib]` and they were not already installed through library selection. Reference CAD engines are not installed for these host-side tests. Geometry/native checks remain verification stages.
 
 ## Capability boundaries
 
@@ -150,10 +155,64 @@ Physical model dependencies name other owner ids. Selection closes transitively 
 
 ## Durable output
 
-Incremental publication replaces selected model owners, preserves untouched active owners with their source provenance and removes deleted owners. Permanent successful runs publish separate `main/` and `dev/` scopes on the generated `build` branch.
+Incremental publication replaces selected model owners, preserves untouched active owners with their source provenance and removes deleted owners. Permanent successful runs publish separate `main/` and `dev/` scopes on the generated `build` branch. `build-plan.json` records whether the independent library owner was selected and qualified; stable release qualification requires `library: true` in addition to a full model-owner build.
+
+Workflow roles mirror `template.cad.model-project`: pull requests run only the `ci` qualification job; permanent `dev`/`main` events run one `build` job that executes the selected project work and publishes the durable scope. Pages is not a downstream job in that build graph: after successful publication the build only dispatches the independent `pages.yml` workflow and finishes without waiting for it.
 
 ## Presentation
 
-Hugo reads model metadata plus durable build output. It never executes CAD or verification. Public visibility is controlled only by `model.yml.purpose`.
+Hugo reads model metadata plus durable build output. It never executes CAD or verification. Each declared `model.yml.purpose` projects the owner into Examples and/or Verification. Legacy Models routes redirect to the matching purpose view. Pages must not copy generated CAD artifacts.
 
 The custom model presentation continues to use the established Hextra CAD baseline from `exp.2026-015.hugo-cad-site` and `template.cad.model-project`.
+
+Optional `model.yml.presentation_primary` selects a declared implementation for
+the featured source and image without changing the execution primary. It defaults
+to `ci.yml.primary`. Native builder snapshots use their own implementation
+artifact; Pages never substitutes another implementation's preview.
+
+## Release boundary
+
+Release qualification is separate from normal product qualification, durable
+publication and Pages.
+
+A product-changing stable source is qualified normally: full model-owner
+selection, library qualification and durable `build/main` evidence. A later
+release metadata commit does not invalidate that product evidence merely
+because package version or changelog text changed.
+
+The release lane is therefore intentionally narrow:
+
+```text
+qualified main product source
+  -> release/vX.Y.Z from main
+  -> CHANGELOG.md + cadlib/pyproject.toml only
+  -> lightweight library + release PR qualification
+  -> squash to main
+  -> lightweight stable qualification, no build/main replacement
+  -> /release exact-main-sha
+  -> main -> dev synchronization
+```
+
+CI records release-only candidates with `release_only: true`. Build
+publication treats that as a stable-baseline preservation instruction: it
+checks source freshness but leaves the previous full `build/main` scope
+untouched.
+
+The template-owned `modules/release` capability validates that retained scope
+as the product baseline, then validates the exact requested release source
+history. The baseline must remain a full library + all-owner PASS. Every
+first-parent stable commit between baseline and release target must be
+single-parent and may change only `CHANGELOG.md` and the `project.version`
+value in `cadlib/pyproject.toml`. Any other path requires a new normal full stable
+qualification instead of baseline reuse.
+
+`.github/workflows/release.yml` checks out the exact requested source with
+history, performs that repository/template-owned evidence check, and then
+delegates tag/GitHub Release publication to released `tool.py.lib.ci`.
+Consumer-specific package/release-note rules remain in `cadlib/release.py`.
+
+The shared publisher still requires the requested SHA to equal `main` HEAD.
+The release tag therefore always names a stable commit even when its CAD
+product evidence comes from an unchanged earlier full stable baseline.
+
+Pages and `gh-pages` are not release evidence.

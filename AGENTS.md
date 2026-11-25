@@ -2,7 +2,32 @@
 
 Read `docs/plan.md`, `docs/design.md` and `docs/manual.md` before changing the repository.
 
-Work from a temporary branch based on `dev`. Set `build.yml.branch` to the actual branch and select the necessary library, modules and **physical model owners**. Squash temporary branches into `dev`; promote `dev` to `main` with a merge commit.
+Normal product work starts from `dev` on a temporary branch. Set `build.yml.branch` to the actual branch and select the necessary library, modules and **physical model owners**. Squash normal temporary branches into `dev`; promote `dev` to `main` with a merge commit only when an explicit product stabilization is intended.
+
+Release preparation is separate: create `release/vX.Y.Z` from stable `main` and change only `CHANGELOG.md` and the `project.version` value in `cadlib/pyproject.toml`. Merge that short-lived release branch directly to `main` through `/merge`. Release-only stable commits reuse the previous full `build/main` product qualification; they must not rebuild or replace unchanged model evidence. After publication, synchronize the stable-only release commit back with `main -> dev`. Never rebase the shared permanent `dev` branch.
+
+## Mandatory merge execution rule
+
+This repository deliberately does **not** let an agent choose the merge method.
+
+For every source-branch integration:
+
+- short-lived branch -> `dev`;
+- `dev` -> `main`;
+- exceptional `main` -> `dev`;
+
+an agent MUST post `/merge` on the pull request and let
+`.github/workflows/merge-policy.yml` perform the merge.
+
+An agent MUST NOT:
+
+- call GitHub's direct merge API;
+- enable or use auto-merge;
+- use a UI/manual merge fallback;
+- manually choose squash, merge or rebase.
+
+If `/merge` fails, stop the integration and repair the merge-policy path.
+Never bypass the policy.
 
 The repository root for CAD ownership is `models/`, matching `template.cad.model-project`. Do not reintroduce `examples/` as an execution owner root.
 
@@ -20,6 +45,6 @@ Preserve the two released runtime roles; do not add a third verification image.
 
 Physical model dependencies name owner ids. Selection closes over downstream dependents.
 
-Reusable verification belongs in `modules/verification/`; owner-specific expectations stay in `models/<id>/verification/`.
+Reusable verification belongs in `modules/verification/`; owner-specific built-artifact expectations stay in `models/<id>/verification/`. Optional `models/<id>/tests/` are owner-local source/compiler contract tests and run only with that selected owner; do not move them into `cadlib/tests` unless the contract is genuinely package-wide.
 
-Pages is separate from CAD CI. Hugo reads source metadata and durable build evidence only. Verification-only owners are not public. Keep the established Hextra/CAD presentation baseline.
+Pages is separate from CAD CI. Hugo reads source metadata and durable build evidence only. Project model purposes into Examples and Verification without duplicating physical owners or generated artifacts. Keep the established Hextra/CAD presentation baseline.

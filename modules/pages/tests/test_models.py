@@ -25,8 +25,10 @@ class ModelPagesTests(unittest.TestCase):
                     f"title: {item}\npurpose: {purpose}\n"
                 )
                 (owner / "ci.yml").write_text(
-                    f"id: {item}\nprimary: cadquery\n"
+                    f"id: {item}\nprimary: cadquery\nimplementations:\n  - id: cadquery\n    source: model.py\n"
                 )
+
+                (owner / "model.py").write_text("value = 42\n")
 
             build_scope = root / "build" / "dev"
             evidence = build_scope / "models" / "box"
@@ -59,7 +61,8 @@ class ModelPagesTests(unittest.TestCase):
             (evidence / "source.json").write_text(
                 json.dumps({"source_sha": "test-sha"})
             )
-            (evidence / "model.png").write_text("png")
+            (evidence / "model.png").write_text("owner-level image")
+            (evidence / "cadquery/model.png").write_text("implementation image")
             (evidence / "model.stl").write_text("mesh")
             for implementation in ("cadquery", "legacy"):
                 (evidence / implementation / "model.stl").write_text("mesh")
@@ -69,15 +72,18 @@ class ModelPagesTests(unittest.TestCase):
 
             site = root / "staged-site"
             prepare_models(root, site, build_scope)
-            page = site / "content/models/box/index.md"
+            page = site / "content/examples/box/index.md"
             content = page.read_text()
             self.assertIn("test-sha", content)
+            self.assertNotIn("build/dev/models/box/model.png", content)
+            self.assertIn("value = 42", content)
+            self.assertIn("model.py", content)
             self.assertIn(
                 "https://github.com/owner/repo/blob/build/dev/models/box/model.stl",
                 content,
             )
             self.assertIn(
-                "https://raw.githubusercontent.com/owner/repo/build/dev/models/box/model.png",
+                "https://raw.githubusercontent.com/owner/repo/build/dev/models/box/cadquery/model.png",
                 content,
             )
             self.assertIn(
@@ -90,7 +96,11 @@ class ModelPagesTests(unittest.TestCase):
             )
             self.assertIn("**legacy** — builder-legacy", content)
             self.assertFalse((site / "static/models/box/model.stl").exists())
-            self.assertFalse((site / "content/models/fixture").exists())
+            self.assertFalse((site / "content/examples/fixture").exists())
+            self.assertTrue((site / "content/verification/fixture/index.md").is_file())
+            self.assertTrue((site / "content/verification/box/index.md").is_file())
+            self.assertIn('"/models/box/"', content)
+            self.assertEqual(list(site.rglob("*.stl")), [])
 
 
 if __name__ == "__main__":

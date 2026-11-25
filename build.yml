@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/29-page-verification-stages
-modules: [pages]
-library: false
+branch: issue/45-library-release
+modules: [ci, release]
+library: true
 models: []
 tasks: [test]
