@@ -2,7 +2,7 @@
 
 ## Branches and selection
 
-Temporary branches are based on `dev`; squash them into `dev`. Promote `dev` to `main` with a merge commit. Root `build.yml` is an exact branch-local execution plan:
+Normal product branches are based on `dev`; squash them into `dev`. Promote `dev` to `main` with a merge commit only when an explicit product stabilization is intended. Release branches are different: create `release/vX.Y.Z` from stable `main`, merge that short-lived branch directly to `main`, publish from the resulting stable commit, then synchronize `main -> dev` with a merge commit. Do not rebase shared permanent branches. Root `build.yml` is an exact branch-local execution plan:
 
 ```yaml
 schema: 1
@@ -21,9 +21,12 @@ The merge shape is policy-owned, not agent-selected. For every source-branch int
 
 The policy chooses:
 
-- short-lived branch -> `dev`: squash;
-- `dev` -> `main`: merge commit;
-- exceptional `main` -> `dev`: merge commit.
+- normal short-lived branch -> `dev`: squash;
+- `release/*` -> `main`: squash;
+- explicit product promotion `dev` -> `main`: merge commit;
+- stable synchronization `main` -> `dev`: merge commit.
+
+A normal feature/issue/fix/docs/chore branch may not target `main` directly.
 
 Do not use the direct GitHub merge API, auto-merge, a UI/manual fallback, or manual squash/merge/rebase selection. If `/merge` fails, repair the policy path rather than bypassing it.
 
@@ -161,6 +164,20 @@ Stable content is published at `/` and development content at `/dev/`.
 
 A release is an explicit repository-owner action and never follows
 automatically from normal CI.
+
+Release preparation must not implicitly promote the current `dev` branch.
+Create `release/vX.Y.Z` from stable `main`, change only release-owned
+metadata such as package version/changelog/release-plan state, and open that PR
+directly against `main`. The merge policy permits only `release/*` as a
+short-lived direct-to-main branch.
+
+If product changes from `dev` need to become stable, promote those changes as
+a separate explicit product-stabilization decision before release preparation;
+do not couple that decision to the version bump itself.
+
+After the release is published, synchronize `main -> dev` through `/merge`
+so the stable-only version/changelog commit reaches development. Do not rebase
+the shared `dev` branch.
 
 The stable source commit must already have a successful full `build/main`
 scope. Its `build-plan.json` must record `library: true`, select every active
