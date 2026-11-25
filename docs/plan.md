@@ -2,6 +2,10 @@
 
 ## Now
 
+### #73 — optional experimental integration line
+
+Implement the `exp` branch contract tracked in [#73](https://github.com/brainboxemb/template.cad.library/issues/73). Preserve stable release semantics. Qualify merge policy, CI/history, build publication, Pages and cleanup before Forge adoption.
+
 ### #67 — preserve stable full baseline for workflow-dispatched release-only builds
 
 Merge policy starts permanent stable qualification with
