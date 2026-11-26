@@ -179,6 +179,12 @@ HTTPS destinations.
 The custom model presentation continues to use the established Hextra CAD baseline from `exp.2026-015.hugo-cad-site` and `template.cad.model-project`.
 
 Verification detail pages identify their purpose with **What this verifies**.
+Owner-local `page.md` is engineering context rather than verification evidence.
+Render it as **Engineering explanation** immediately after the primary source,
+before generated command sequences, drawings, reference implementations and
+verification evidence. This ordering is shared by Example and Verification
+detail pages.
+
 Detailed measured checks remain durable evidence, but are collapsed by default
 with the same `cad-collapsible` interaction used for generated command
 sequences. Example pages retain **What this model makes**. Owner-local

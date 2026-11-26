@@ -3,6 +3,7 @@
 ## Now
 
 
+
 ### #77 — bind permanent dispatches to the current branch head
 
 Make policy-dispatched permanent qualification robust against GitHub event-SHA
