@@ -12,6 +12,14 @@ class ModelDetailLayoutTests(unittest.TestCase):
         self.assertIn("What this verifies", text)
         self.assertIn("What this model makes", text)
 
+    def test_engineering_explanation_follows_primary_source(self):
+        text = LAYOUT.read_text(encoding="utf-8")
+        source = text.index('id="primary-source"')
+        explanation = text.index('id="engineering-explanation"')
+        commands = text.index('cad-command-section')
+        self.assertLess(source, explanation)
+        self.assertLess(explanation, commands)
+
     def test_verification_checks_are_collapsed_by_default(self):
         text = LAYOUT.read_text(encoding="utf-8")
         marker = '<details class="cad-panel cad-collapsible" id="check-overview">'

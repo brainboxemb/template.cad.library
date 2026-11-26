@@ -2,6 +2,11 @@
 
 ## Now
 
+### #84 — move Engineering explanation after primary source
+
+Place owner-local `page.md` directly after the primary model source and before generated commands/evidence, preserving the existing content and CAD/evidence boundaries.
+
+
 
 ### #77 — bind permanent dispatches to the current branch head
 
