@@ -195,6 +195,24 @@ the featured source and image without changing the execution primary. It default
 to `ci.yml.primary`. Native builder snapshots use their own implementation
 artifact; Pages never substitutes another implementation's preview.
 
+## Central PR CI freshness in merge policy
+
+Normal and reviewed merges validate the central `.github/workflows/ci.yml`
+qualification for the exact pull request head. GitHub may re-associate
+historical check-runs when a replacement PR reuses the same head commit, so the
+policy does not aggregate every check ever seen on that SHA.
+
+Instead it queries pull-request-triggered Actions runs for the exact head SHA,
+filters to the central CI workflow and current PR, and evaluates the most recent
+run by creation time with run id as a deterministic tie-breaker. A newer
+pending or failed qualification blocks the merge; an older failure is
+superseded only by a genuinely newer allowed result.
+
+Using pull-request workflow runs also prevents a later permanent
+`workflow_dispatch` with a skipped PR job from masquerading as the current PR
+qualification. Merge method selection, reviewed conflict recovery and
+permanent dispatch behavior are otherwise unchanged.
+
 ## Reviewed permanent-branch conflict recovery
 
 The branch topology remains authoritative even when GitHub cannot merge a
