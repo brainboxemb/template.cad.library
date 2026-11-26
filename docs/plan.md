@@ -2,6 +2,11 @@
 
 ## Now
 
+### #77 — bind permanent dispatches to the current branch head
+
+Make policy-dispatched permanent qualification robust against GitHub event-SHA lag immediately after a merge. Use the checked-out permanent branch HEAD consistently for selection and publication while retaining fail-closed source freshness validation.
+
+
 ### #73 — optional experimental integration line
 
 Implement the `exp` branch contract tracked in [#73](https://github.com/brainboxemb/template.cad.library/issues/73). Preserve stable release semantics. Qualify merge policy, CI/history, build publication, Pages and cleanup before Forge adoption.\n\nSmoke qualification is intentionally performed through a real temporary branch into permanent `exp`; the resulting `exp` build and `/exp/` Pages scope are the acceptance evidence.
