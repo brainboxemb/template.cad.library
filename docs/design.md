@@ -232,3 +232,15 @@ The release tag therefore always names a stable commit even when its CAD
 product evidence comes from an unchanged earlier full stable baseline.
 
 Pages and `gh-pages` are not release evidence.
+
+
+## Permanent dispatch source identity
+
+Policy-owned permanent qualification treats the current permanent branch head
+as the source of truth, not the workflow event SHA. A `workflow_dispatch`
+created immediately after a merge can temporarily carry the previous ref SHA.
+The build job therefore explicitly checks out `github.ref_name`, resolves that
+checked-out HEAD once, passes it to CI as `CAD_SOURCE_SHA`, and publishes
+durable evidence against the same resolved SHA. Publisher freshness validation
+still compares that SHA with the live source ref and fails closed if the branch
+moves again during the run.
