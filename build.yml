@@ -1,6 +1,6 @@
 schema: 1
-branch: fix/77-current-dispatch-head
-modules: [ci, build]
+branch: issue/82-verification-page-clarity
+modules: [pages]
 library: false
 models: []
 tasks: [test]

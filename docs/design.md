@@ -178,6 +178,13 @@ HTTPS destinations.
 
 The custom model presentation continues to use the established Hextra CAD baseline from `exp.2026-015.hugo-cad-site` and `template.cad.model-project`.
 
+Verification detail pages are intent-first. Their opening section says what the
+case verifies, and owner-local `page.md` explanatory content is presented near
+the top as **Verification intent**. Detailed measured checks remain durable
+evidence, but are collapsed by default with the same `cad-collapsible`
+interaction used for generated command sequences. Example pages retain
+**What this model makes** and the later engineering-explanation placement.
+
 Optional `model.yml.presentation_primary` selects a declared implementation for
 the featured source and image without changing the execution primary. It defaults
 to `ci.yml.primary`. Native builder snapshots use their own implementation
