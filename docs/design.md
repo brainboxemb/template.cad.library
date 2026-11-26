@@ -251,6 +251,15 @@ history. A moved parent/ref/tree, fork review, non-green review, non-`resolve/*`
 head or non-permanent original direction fails closed. A PR that becomes
 normally mergeable must return to ordinary `/merge`.
 
+A genuinely conflicted PR may have no `pull_request` CI run at all because
+GitHub cannot create its synthetic merge ref. The original permanent head is
+therefore qualified through durable `build/<head>/build-plan.json` evidence:
+the branch ref must still equal the reviewed head SHA and the published
+`source_sha` must equal that same SHA. This record is written only after
+successful permanent qualification and uses the actually checked-out branch
+head, so it also avoids workflow-dispatch event-SHA lag. The separate
+`resolve/*` review PR still requires normal PR-specific central CI.
+
 This restores the reviewed conflict-recovery semantics already proven by
 released `tool.cad.ci` while keeping the current template-local merge-policy
 module as the architecture owner.
