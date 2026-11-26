@@ -2,10 +2,6 @@
 
 ## Now
 
-### #82 — make Verification detail pages intent-first
-
-Move owner-local verification explanation near the top, distinguish `What this verifies` from Example presentation, and collapse detailed Verification checks by default while retaining all durable evidence inside the expandable section.
-
 
 ### #77 — bind permanent dispatches to the current branch head
 
