@@ -1,5 +1,5 @@
 schema: 1
-branch: issue/95-latest-pr-ci
+branch: issue/100-resolved-permanent-head-evidence
 modules: [merge-policy]
 library: false
 models: []
