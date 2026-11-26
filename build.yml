@@ -1,5 +1,5 @@
 schema: 1
-branch: issue/90-reviewed-merge-recovery
+branch: issue/95-latest-pr-ci
 modules: [merge-policy]
 library: false
 models: []
