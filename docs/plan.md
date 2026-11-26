@@ -2,6 +2,16 @@
 
 ## Now
 
+### #90 — reviewed conflict recovery for permanent branch merges
+
+Restore the reviewed `/merge-resolved` contract lost during the local
+merge-policy migration. Keep normal `/merge` unchanged; a separate green
+`resolve/*` review PR must bind the exact resolved tree for a genuinely
+conflicted direct permanent merge. This is required before canonical Forge can
+complete its current `dev -> exp` synchronization without squash, rebase or
+manual ref mutation.
+
+
 
 
 ### #77 — bind permanent dispatches to the current branch head
