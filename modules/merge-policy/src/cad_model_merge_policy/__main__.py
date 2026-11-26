@@ -113,20 +113,14 @@ def require_green_ci(
     if not ci_checks:
         raise MergePolicyError("pull request has no central ci check")
 
-    pending = [
-        check
-        for check in ci_checks
-        if check.get("status") != "completed"
-    ]
-    if pending:
-        raise MergePolicyError("central ci check is still running")
+    check_ids = [check.get("id") for check in ci_checks]
+    if not all(isinstance(check_id, int) for check_id in check_ids):
+        raise MergePolicyError("central ci check has no stable check-run id")
 
-    failed = [
-        check
-        for check in ci_checks
-        if check.get("conclusion") not in _ALLOWED_CI_RESULTS
-    ]
-    if failed:
+    latest = max(ci_checks, key=lambda check: check["id"])
+    if latest.get("status") != "completed":
+        raise MergePolicyError("central ci check is still running")
+    if latest.get("conclusion") not in _ALLOWED_CI_RESULTS:
         raise MergePolicyError("central ci check is not green")
 
 
