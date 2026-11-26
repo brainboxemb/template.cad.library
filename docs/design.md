@@ -195,6 +195,48 @@ the featured source and image without changing the execution primary. It default
 to `ci.yml.primary`. Native builder snapshots use their own implementation
 artifact; Pages never substitutes another implementation's preview.
 
+## Reviewed permanent-branch conflict recovery
+
+The branch topology remains authoritative even when GitHub cannot merge a
+direct permanent PR automatically. A conflict must not turn a permanent merge
+into a temporary squash.
+
+For the exact merge-commit directions `dev -> main`, `main -> dev`,
+`dev -> exp` and `exp -> dev`, the policy supports a reviewed recovery
+boundary:
+
+```text
+conflicted permanent PR: base=A, head=B
+        |
+        +-- resolve/<name>
+        |      -> separate PR to same base A
+        |      -> mergeable + green central CI
+        |      -> exact commit R / tree T
+        |
+        +-- /merge-resolved
+               base A
+               head B
+               resolution-pr N
+               resolution resolve/<name> R T
+                    |
+                    -> revalidate both PRs and A/B/R/T
+                    -> create tree=T, parents=[A,B]
+                    -> read back exact merge object
+                    -> revalidate refs again
+                    -> non-force advance permanent base
+                    -> normal permanent CI + cleanup dispatch
+```
+
+The resolution PR is review evidence only and is never integrated. The
+temporary resolution commit is therefore not a third parent of permanent
+history. A moved parent/ref/tree, fork review, non-green review, non-`resolve/*`
+head or non-permanent original direction fails closed. A PR that becomes
+normally mergeable must return to ordinary `/merge`.
+
+This restores the reviewed conflict-recovery semantics already proven by
+released `tool.cad.ci` while keeping the current template-local merge-policy
+module as the architecture owner.
+
 ## Main-owned governance merge boundary
 
 Normal product work still integrates through `dev` or `exp`. A repository

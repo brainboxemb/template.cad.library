@@ -41,6 +41,36 @@ Do not use the direct GitHub merge API, auto-merge, a UI/manual fallback, or man
 
 Repeating `/merge` after a pull request has already been merged is an idempotent successful no-op. A pull request that is closed without being merged is still rejected.
 
+#### Reviewed conflict recovery for permanent branches
+
+Normal `/merge` remains the only ordinary integration command. If an exact
+direct permanent-branch PR (`dev -> main`, `main -> dev`, `dev -> exp` or
+`exp -> dev`) is genuinely conflicted, do not squash it and do not replace it
+with a temporary integration branch.
+
+Prepare a separate `resolve/*` branch that contains the intended combined
+tree and open a **review-only** PR from that branch to the same permanent base.
+That PR must be mergeable and central CI must be green; it is never merged.
+After reviewing the exact base/head commits, resolution commit and Git tree,
+comment on the original conflicted permanent PR:
+
+```text
+/merge-resolved
+base <reviewed-base-sha>
+head <reviewed-head-sha>
+resolution-pr <review-pr-number>
+resolution resolve/<name> <reviewed-resolution-commit-sha> <reviewed-tree-sha>
+```
+
+The policy revalidates both PRs and all mutable refs, creates exactly one merge
+commit with the reviewed tree and parents `[base, head]`, verifies that object,
+then advances the permanent base non-force. It dispatches the same permanent
+CI/cleanup workflows as normal integration, closes both review PRs and removes
+the unchanged resolution branch.
+
+If the original PR becomes normally mergeable, use `/merge` instead.
+`/merge-resolved` is refused for temporary, release and governance PRs.
+
 ## Library owner
 
 `cadlib/` is independent of model owners and internal modules. Selecting the library runs its source tests and builds one qualification wheel. This is not a release.
