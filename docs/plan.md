@@ -2,6 +2,19 @@
 
 ## Now
 
+### #95 — latest PR-specific central CI in merge policy
+
+When the same permanent head SHA is reused by a replacement pull request,
+GitHub can associate historical failed checks from the superseded PR with the
+new PR. Merge policy must validate the newest central `pull_request` CI run
+for the exact head/PR instead of requiring every historical check on that SHA
+to be green.
+
+Keep the gate fail-closed: no current PR CI, a latest pending run, or a latest
+failed run still blocks integration. This is merge-policy infrastructure only;
+CAD/model/release semantics remain unchanged.
+
+
 ### #90 — reviewed conflict recovery for permanent branch merges
 
 Restore the reviewed `/merge-resolved` contract lost during the local
