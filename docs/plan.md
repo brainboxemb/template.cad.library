@@ -2,6 +2,14 @@
 
 ## Now
 
+### #96 — bind merge gate to latest PR CI on reused permanent heads
+
+When GitHub re-associates historical central-CI checks from an unchanged
+permanent head SHA with a newer synchronization PR, merge policy must use only
+the newest PR-specific `ci` check-run as the current gate. Preserve fail-closed
+pending/failure behavior for that latest check and keep older attempts as
+history rather than permanent blockers.
+
 ### #90 — reviewed conflict recovery for permanent branch merges
 
 Restore the reviewed `/merge-resolved` contract lost during the local
