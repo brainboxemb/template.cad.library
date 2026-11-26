@@ -2,6 +2,15 @@
 
 ## Now
 
+### #77 — bind permanent dispatches to the current branch head
+
+Make policy-dispatched permanent qualification robust against GitHub event-SHA
+lag immediately after a merge. The build job must explicitly check out the
+current permanent ref, resolve that checked-out SHA once, and use it for CI
+history selection and durable publication while retaining the publisher's
+fail-closed source freshness check.
+
+
 ### #73 — optional experimental integration line
 
 Implement the `exp` branch contract tracked in [#73](https://github.com/brainboxemb/template.cad.library/issues/73). Preserve stable release semantics. Qualify merge policy, CI/history, build publication, Pages and cleanup before Forge adoption.

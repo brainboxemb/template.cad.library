@@ -1,6 +1,6 @@
 schema: 1
-branch: feature/73-experimental-development
-modules: all
-library: true
-models: all
+branch: fix/77-current-dispatch-head
+modules: [ci, build]
+library: false
+models: []
 tasks: [test]
