@@ -195,6 +195,19 @@ the featured source and image without changing the execution primary. It default
 to `ci.yml.primary`. Native builder snapshots use their own implementation
 artifact; Pages never substitutes another implementation's preview.
 
+## Reused permanent-head PR qualification
+
+Permanent branches such as `dev` may remain on the same commit while more than
+one synchronization PR is attempted. GitHub can then retrospectively associate
+older check-runs for that unchanged head SHA with the newest PR. Merge policy
+must not interpret those historical attempts as simultaneous current gates.
+
+For the current PR and head SHA, the PR-specific central `ci` check with the
+greatest GitHub check-run id is authoritative. Its status must be completed and
+its conclusion must be allowed. An older failed or pending `ci` check on the
+same reused head is retained as history but does not override a newer green
+qualification. A missing stable check-run id fails closed.
+
 ## Reviewed permanent-branch conflict recovery
 
 The branch topology remains authoritative even when GitHub cannot merge a
