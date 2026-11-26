@@ -41,6 +41,12 @@ Do not use the direct GitHub merge API, auto-merge, a UI/manual fallback, or man
 
 Repeating `/merge` after a pull request has already been merged is an idempotent successful no-op. A pull request that is closed without being merged is still rejected.
 
+When the same permanent head commit participates in multiple PR attempts,
+GitHub may associate historical central-CI check-runs with the current PR. The
+merge gate uses the newest PR-specific `ci` check-run id as the current
+qualification. Older failed checks remain visible history but do not poison a
+newer green run; a newer pending or failed run still blocks.
+
 #### Reviewed conflict recovery for permanent branches
 
 Normal `/merge` remains the only ordinary integration command. If an exact
