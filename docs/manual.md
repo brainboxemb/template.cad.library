@@ -70,6 +70,12 @@ resolution-pr <review-pr-number>
 resolution resolve/<name> <reviewed-resolution-commit-sha> <reviewed-tree-sha>
 ```
 
+The original conflicted permanent head is not required to have an impossible
+`pull_request` run. Instead its exact current branch SHA must match the
+`source_sha` in durable `build/<head>/build-plan.json`, proving successful
+permanent qualification of that source. The separate resolution PR still
+requires normal green PR-specific central CI.
+
 The policy revalidates both PRs and all mutable refs, creates exactly one merge
 commit with the reviewed tree and parents `[base, head]`, verifies that object,
 then advances the permanent base non-force. It dispatches the same permanent
