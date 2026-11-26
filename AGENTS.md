@@ -30,6 +30,12 @@ An agent MUST NOT:
 If `/merge` fails, stop the integration and repair the merge-policy path.
 Never bypass the policy.
 
+A genuinely conflicted **direct permanent-branch** PR may use the policy-owned
+reviewed `/merge-resolved` recovery only after a separate same-repository
+`resolve/*` PR has exposed the exact combined tree and passed central CI.
+The resolution PR is review-only and must never be merged normally. Do not use
+this path for temporary, release or governance PRs.
+
 The repository root for CAD ownership is `models/`, matching `template.cad.model-project`. Do not reintroduce `examples/` as an execution owner root.
 
 One `models/<id>/` directory is one physical owner. Multiple engine implementations belong under that owner and are declared in its `ci.yml`. Do not create sibling owners such as `model-build123d` or `model-solidcraft` solely to represent engines.
