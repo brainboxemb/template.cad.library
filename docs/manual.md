@@ -2,7 +2,9 @@
 
 ## Branches and selection
 
-Normal product branches are based on `dev`; squash them into `dev`. Promote `dev` to `main` with a merge commit only when an explicit product stabilization is intended. Release branches are different: create `release/vX.Y.Z` from stable `main`, merge that short-lived branch directly to `main`, publish from the resulting stable commit, then synchronize `main -> dev` with a merge commit. Do not rebase shared permanent branches. Root `build.yml` is an exact branch-local execution plan:
+Normal product branches are based on `dev`; squash them into `dev`. Promote `dev` to `main` with a merge commit only when an explicit product stabilization is intended. Release branches are different: create `release/vX.Y.Z` from stable `main`, merge that short-lived branch directly to `main`, publish from the resulting stable commit, then synchronize `main -> dev` with a merge commit. Do not rebase shared permanent branches. Permanent `workflow_dispatch` runs explicitly qualify the current checked-out permanent branch head; they do not trust an event SHA that may lag immediately after a merge. Durable publication still fails closed if that branch moves again during the run.
+
+Root `build.yml` is an exact branch-local execution plan:
 
 ```yaml
 schema: 1
