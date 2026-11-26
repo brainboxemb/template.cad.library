@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/84-engineering-explanation-after-source
-modules: [pages]
+branch: issue/90-reviewed-merge-recovery
+modules: [merge-policy]
 library: false
 models: []
 tasks: [test]
