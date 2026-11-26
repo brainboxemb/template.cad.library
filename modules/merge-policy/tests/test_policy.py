@@ -20,8 +20,9 @@ from cad_model_merge_policy.policy import (
 )
 
 
-def check(name, status, conclusion, *prs):
+def check(name, status, conclusion, *prs, check_id=1):
     return {
+        "id": check_id,
         "name": name,
         "status": status,
         "conclusion": conclusion,
@@ -267,6 +268,46 @@ class MergePolicyTests(unittest.TestCase):
             ]
         }
         require_green_ci("owner/repo", "sha", 25, "token")
+
+    @patch("cad_model_merge_policy.__main__.api")
+    def test_latest_pr_ci_supersedes_stale_failure_on_reused_head(self, api):
+        api.return_value = {
+            "check_runs": [
+                check("ci", "completed", "failure", 25, check_id=100),
+                check("ci", "completed", "success", 25, check_id=200),
+            ]
+        }
+        require_green_ci("owner/repo", "sha", 25, "token")
+
+    @patch("cad_model_merge_policy.__main__.api")
+    def test_latest_pending_ci_blocks_even_after_older_success(self, api):
+        api.return_value = {
+            "check_runs": [
+                check("ci", "completed", "success", 25, check_id=100),
+                check("ci", "in_progress", None, 25, check_id=200),
+            ]
+        }
+        with self.assertRaisesRegex(MergePolicyError, "still running"):
+            require_green_ci("owner/repo", "sha", 25, "token")
+
+    @patch("cad_model_merge_policy.__main__.api")
+    def test_latest_failed_ci_blocks_even_after_older_success(self, api):
+        api.return_value = {
+            "check_runs": [
+                check("ci", "completed", "success", 25, check_id=100),
+                check("ci", "completed", "failure", 25, check_id=200),
+            ]
+        }
+        with self.assertRaisesRegex(MergePolicyError, "not green"):
+            require_green_ci("owner/repo", "sha", 25, "token")
+
+    @patch("cad_model_merge_policy.__main__.api")
+    def test_missing_check_run_id_fails_closed(self, api):
+        entry = check("ci", "completed", "success", 25)
+        del entry["id"]
+        api.return_value = {"check_runs": [entry]}
+        with self.assertRaisesRegex(MergePolicyError, "stable check-run id"):
+            require_green_ci("owner/repo", "sha", 25, "token")
 
     @patch("cad_model_merge_policy.__main__.api")
     def test_pending_ci_blocks_merge(self, api):
