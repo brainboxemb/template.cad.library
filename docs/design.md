@@ -178,10 +178,42 @@ HTTPS destinations.
 
 The custom model presentation continues to use the established Hextra CAD baseline from `exp.2026-015.hugo-cad-site` and `template.cad.model-project`.
 
+Verification detail pages identify their purpose with **What this verifies**.
+Owner-local `page.md` is engineering context rather than verification evidence.
+Render it as **Engineering explanation** immediately after the primary source,
+before generated command sequences, drawings, reference implementations and
+verification evidence. This ordering is shared by Example and Verification
+detail pages.
+
+Detailed measured checks remain durable evidence, but are collapsed by default
+with the same `cad-collapsible` interaction used for generated command
+sequences. Example pages retain **What this model makes**. Owner-local
+engineering-explanation placement is a separate presentation concern.
+
 Optional `model.yml.presentation_primary` selects a declared implementation for
 the featured source and image without changing the execution primary. It defaults
 to `ci.yml.primary`. Native builder snapshots use their own implementation
 artifact; Pages never substitutes another implementation's preview.
+
+## Main-owned governance merge boundary
+
+Normal product work still integrates through `dev` or `exp`. A repository
+may keep its small volatile governance entrypoints directly on stable `main`
+without using the development lane as a staging copy.
+
+The merge-policy route is deliberately narrow:
+
+- the source branch uses the existing `docs/` temporary prefix;
+- the target is `main`;
+- the merge method is squash;
+- changed paths are exhaustively read from the pull request and may contain
+  only `AGENTS.md`, `docs/plan.md` and `docs/handoff.md`;
+- any other path fails closed before merge;
+- ordinary `docs/* -> dev|exp` work keeps its existing behavior.
+
+Branch cleanup accepts a successfully merged `docs/* -> main` PR as a valid
+temporary-branch completion, but this does not make stable a valid target for
+issue/fix/feature/chore branches.
 
 ## Release boundary
 
