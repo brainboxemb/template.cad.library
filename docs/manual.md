@@ -41,6 +41,14 @@ Do not use the direct GitHub merge API, auto-merge, a UI/manual fallback, or man
 
 Repeating `/merge` after a pull request has already been merged is an idempotent successful no-op. A pull request that is closed without being merged is still rejected.
 
+
+The green-CI gate uses the newest `pull_request` run of
+`.github/workflows/ci.yml` for the exact head SHA and pull request. Historical
+failed runs on the same commit do not permanently poison a replacement PR once
+a newer qualification succeeds. Conversely, if the newest qualification is
+still running or failed, `/merge` remains blocked. Permanent
+`workflow_dispatch` runs are not substitutes for PR qualification.
+
 #### Reviewed conflict recovery for permanent branches
 
 Normal `/merge` remains the only ordinary integration command. If an exact
