@@ -195,6 +195,26 @@ the featured source and image without changing the execution primary. It default
 to `ci.yml.primary`. Native builder snapshots use their own implementation
 artifact; Pages never substitutes another implementation's preview.
 
+## Main-owned governance merge boundary
+
+Normal product work still integrates through `dev` or `exp`. A repository
+may keep its small volatile governance entrypoints directly on stable `main`
+without using the development lane as a staging copy.
+
+The merge-policy route is deliberately narrow:
+
+- the source branch uses the existing `docs/` temporary prefix;
+- the target is `main`;
+- the merge method is squash;
+- changed paths are exhaustively read from the pull request and may contain
+  only `AGENTS.md`, `docs/plan.md` and `docs/handoff.md`;
+- any other path fails closed before merge;
+- ordinary `docs/* -> dev|exp` work keeps its existing behavior.
+
+Branch cleanup accepts a successfully merged `docs/* -> main` PR as a valid
+temporary-branch completion, but this does not make stable a valid target for
+issue/fix/feature/chore branches.
+
 ## Release boundary
 
 Release qualification is separate from normal product qualification, durable
