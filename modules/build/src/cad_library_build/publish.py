@@ -142,15 +142,16 @@ def update_scope(target, candidate, plan):
         raise PublishError("invalid API probe selection")
 
     probe_target = target / "api-probes"
-    shutil.rmtree(probe_target, ignore_errors=True)
     if selected_probes:
-        probe_target.mkdir()
+        probe_target.mkdir(parents=True, exist_ok=True)
     for item in sorted(selected_probes):
         source = candidate / "api-probes" / item
         result = json.loads((source / "result.json").read_text())
         if result.get("status") != "pass" or result.get("id") != item:
             raise PublishError(f"cannot publish unsuccessful API probe: {item}")
         dest = probe_target / item
+        if dest.exists():
+            shutil.rmtree(dest)
         shutil.copytree(source, dest)
         (dest / "source.json").write_text(
             json.dumps({"source_sha": plan["source_sha"]}, indent=2) + "\n"
