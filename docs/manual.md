@@ -48,14 +48,17 @@ library, model owners or API probes. A mixed docs/source PR follows normal
 selection. Permanent-lane promotion and release PR rules are evaluated first
 and remain stronger.
 
-After a normal temporary PR is merged into a configured permanent lane, the
-permanent build first looks for the exact PR qualification artifact. It reuses
-that artifact only when GitHub identifies one merged same-repository PR for the
-source commit, the newest PR-specific central CI run is green, and the permanent
-commit and PR head have exactly the same Git tree. The durable build-plan then
-records the permanent `source_sha` plus `qualified_source_sha`, PR number and
-CI run id. If any check fails or the artifact is missing/expired, the workflow
-simply executes ordinary CAD-CI.
+When `/merge` integrates a normal temporary PR into a configured permanent
+lane, merge policy passes the exact reviewed PR head SHA and exact green
+PR-specific CI run id into the permanent workflow dispatch. The uploaded
+qualification artifact names GitHub's synthetic PR merge commit as its original
+`source_sha`; that commit must have the reviewed base/head as its two parents,
+and its Git tree must exactly equal the new permanent commit tree.
+
+On success the durable build-plan records the permanent `source_sha`, the
+synthetic `qualified_source_sha`, the reviewed `qualified_head_sha`, PR number
+and CI run id. If the binding is absent, any identity check fails, or the
+artifact is missing/expired, the workflow simply executes ordinary CAD-CI.
 
 Do not enable reuse for `main` merely to make releases faster. Stable
 qualification keeps its existing full/release-only rules unless a separately
