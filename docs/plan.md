@@ -13,14 +13,18 @@ promotion/release rules. A PR is lightweight only when its complete base→head
 delta is below configured prefixes; it runs only configured lightweight
 modules, with no library/model/API-probe qualification.
 
-Permanent reuse is merge-policy-bound. Before integration, `/merge` binds the
-reviewed PR head and exact green PR CI run into the permanent workflow
-dispatch. The artifact's original `source_sha` is GitHub's synthetic PR merge
-commit; that commit must have the reviewed base/head as its two parents and its
-Git tree must exactly equal the permanent merge tree. Durable evidence records
-the permanent `source_sha`, synthetic `qualified_source_sha`, reviewed
-`qualified_head_sha`, PR number and CI run id. Any missing or mismatched
-evidence falls back to normal CAD-CI.
+Permanent reuse prefers a merge-policy binding: before integration, `/merge`
+binds the reviewed PR head and exact green PR CI run into the permanent workflow
+dispatch. Until stable `main` carries that merge-policy revision, configured
+permanent lanes may conservatively discover the single merged PR associated
+with the permanent commit and use only the newest central PR run for its exact
+head/ref. In both paths, the artifact's original `source_sha` is GitHub's
+synthetic PR merge commit; that commit must have the reviewed base/head as its
+two parents and its Git tree must exactly equal the permanent merge tree.
+Durable evidence records the permanent `source_sha`, synthetic
+`qualified_source_sha`, reviewed `qualified_head_sha`, PR number and CI run
+id. Missing, ambiguous, failed, stale or mismatched evidence falls back to
+normal CAD-CI.
 
 PR #109 itself proved the lightweight infrastructure selection with only the
 `ci` and `merge-policy` modules: 59 CI tests and 34 merge-policy tests passed
