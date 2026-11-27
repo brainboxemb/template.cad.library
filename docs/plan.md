@@ -34,9 +34,12 @@ implementation.
 
 The first discovery smoke correctly failed closed because the permanent build
 job lacked `pull-requests: read`, which is required to resolve the PR
-associated with a merge commit. The job now grants that minimal read permission;
-a second end-to-end merge validates that the qualification artifact is reused
-and the CAD execution step is skipped.
+associated with a merge commit. Adding that permission exposed the next
+transport boundary: GitHub's artifact endpoint redirects to signed object
+storage, so the downloader must not forward the GitHub bearer token to the blob
+host. Artifact download now handles the redirect explicitly: GitHub API with
+the workflow token, signed blob URL without it. A final end-to-end merge
+validates that the artifact is reused and the CAD execution step is skipped.
 
 Pages remains asynchronously dispatched after durable build publication; CAD
 compiler qualification does not wait for Pages deployment.

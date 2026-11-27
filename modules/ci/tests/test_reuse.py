@@ -1,13 +1,15 @@
 import io
 import json
+from email.message import Message
 from pathlib import Path
 from types import SimpleNamespace
 import tempfile
 import unittest
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 import zipfile
 
 from cad_library_ci.reuse import (
+    _download_artifact,
     _rebind_plan,
     _require_same_qualified_tree,
     materialize,
@@ -15,6 +17,45 @@ from cad_library_ci.reuse import (
 
 
 class ReuseQualificationTests(unittest.TestCase):
+    @patch("cad_library_ci.reuse.request.urlopen")
+    @patch("cad_library_ci.reuse.request.build_opener")
+    def test_artifact_download_strips_github_auth_on_signed_redirect(
+        self,
+        build_opener,
+        urlopen,
+    ):
+        headers = Message()
+        headers["Location"] = "https://blob.example/artifact.zip?sig=abc"
+        build_opener.return_value.open.side_effect = __import__(
+            "urllib.error", fromlist=["HTTPError"]
+        ).HTTPError(
+            "https://api.github.com/artifact",
+            302,
+            "Found",
+            headers,
+            None,
+        )
+        blob = MagicMock()
+        blob.__enter__.return_value.read.return_value = b"zip-bytes"
+        urlopen.return_value = blob
+
+        self.assertEqual(
+            _download_artifact("owner/repo", 99, "secret"),
+            b"zip-bytes",
+        )
+
+        api_request = build_opener.return_value.open.call_args.args[0]
+        self.assertEqual(
+            api_request.get_header("Authorization"),
+            "Bearer secret",
+        )
+        blob_request = urlopen.call_args.args[0]
+        self.assertIsNone(blob_request.get_header("Authorization"))
+        self.assertEqual(
+            blob_request.full_url,
+            "https://blob.example/artifact.zip?sig=abc",
+        )
+
     @patch("cad_library_ci.reuse._commit")
     def test_same_qualified_tree_requires_exact_pr_merge_parents(self, commit):
         base = "d" * 40
