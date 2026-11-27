@@ -32,6 +32,12 @@ with zero selected models and zero selected API probes. A separate docs-only PR
 now verifies the configured path classification against the merged `dev`
 implementation.
 
+The first discovery smoke correctly failed closed because the permanent build
+job lacked `pull-requests: read`, which is required to resolve the PR
+associated with a merge commit. The job now grants that minimal read permission;
+a second end-to-end merge validates that the qualification artifact is reused
+and the CAD execution step is skipped.
+
 Pages remains asynchronously dispatched after durable build publication; CAD
 compiler qualification does not wait for Pages deployment.
 
