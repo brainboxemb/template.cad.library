@@ -86,7 +86,28 @@ jobs:
       - name: Install CI runtime dependencies
         run: python -m pip install PyYAML==6.0.2
 
+      - name: Reuse tree-identical PR qualification when configured
+        id: reuse
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PYTHONPATH: modules/ci/src
+        run: >-
+          python -m cad_library_ci.reuse
+          --repository "${{ github.repository }}"
+          --branch "${{ github.ref_name }}"
+          --source-sha "${{ steps.source.outputs.sha }}"
+          --candidate build/qualification
+          --github-output "$GITHUB_OUTPUT"
+
+      - name: Report reused PR qualification
+        if: steps.reuse.outputs.reuse == 'true'
+        run: >-
+          echo "Reusing green PR #${{ steps.reuse.outputs.pr_number }}
+          run ${{ steps.reuse.outputs.run_id }}
+          from ${{ steps.reuse.outputs.qualified_source_sha }}"
+
       - name: Run selected project items
+        if: steps.reuse.outputs.reuse != 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           CAD_SOURCE_SHA: ${{ steps.source.outputs.sha }}
