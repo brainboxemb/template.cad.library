@@ -211,7 +211,84 @@ class ReuseQualificationTests(unittest.TestCase):
             self.assertFalse(result["reuse"])
             self.assertEqual(result["reason"], "branch-not-configured")
 
-    def test_materialize_without_merge_policy_binding_falls_back(self):
+    @patch("cad_library_ci.reuse._require_same_qualified_tree")
+    @patch("cad_library_ci.reuse._download_artifact")
+    @patch("cad_library_ci.reuse.discover_reusable_pr_qualification")
+    def test_materialize_discovers_reusable_pr_without_merge_policy_binding(
+        self,
+        discover,
+        download,
+        same_tree,
+    ):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            candidate = root / "candidate"
+            qualified = "a" * 40
+            source = "b" * 40
+            head = "c" * 40
+            base = "d" * 40
+            (root / "ci.yml").write_text(
+                "schema: 1\n"
+                "branches:\n"
+                "  stable: main\n"
+                "  development: dev\n"
+                "roots:\n"
+                "  modules: modules\n"
+                "  models: models\n"
+                "  api_probes: api-probes\n"
+                "  output: build\n"
+                "qualification:\n"
+                "  permanent:\n"
+                "    reuse_pr_qualification:\n"
+                "      branches: [exp]\n"
+            )
+            discover.return_value = SimpleNamespace(
+                artifact_id=99,
+                head_sha=head,
+                base_sha=base,
+                pr_number=12,
+                run_id=34,
+            )
+            payload = io.BytesIO()
+            with zipfile.ZipFile(payload, "w") as archive:
+                archive.writestr(
+                    "build-plan.json",
+                    json.dumps(
+                        {
+                            "schema": 2,
+                            "source_sha": qualified,
+                            "active": [],
+                            "selected": [],
+                            "full": False,
+                            "library": False,
+                        }
+                    ),
+                )
+            download.return_value = payload.getvalue()
+
+            result = materialize(
+                repo=root,
+                repository="owner/repo",
+                branch="exp",
+                source_sha=source,
+                token="token",
+                candidate=candidate,
+            )
+            self.assertTrue(result["reuse"])
+            self.assertEqual(
+                result["reason"],
+                "discovered-tree-identical-green-pr",
+            )
+            same_tree.assert_called_once()
+
+    @patch(
+        "cad_library_ci.reuse.discover_reusable_pr_qualification",
+        return_value=None,
+    )
+    def test_materialize_without_binding_or_discoverable_evidence_falls_back(
+        self,
+        _discover,
+    ):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "ci.yml").write_text(
@@ -238,7 +315,7 @@ class ReuseQualificationTests(unittest.TestCase):
                 candidate=root / "candidate",
             )
             self.assertFalse(result["reuse"])
-            self.assertEqual(result["reason"], "no-merge-policy-binding")
+            self.assertEqual(result["reason"], "no-reusable-pr-evidence")
 
 
 if __name__ == "__main__":
