@@ -7,10 +7,51 @@ import unittest
 from unittest.mock import patch
 import zipfile
 
-from cad_library_ci.reuse import _rebind_plan, materialize
+from cad_library_ci.reuse import (
+    _rebind_plan,
+    _require_same_qualified_tree,
+    materialize,
+)
 
 
 class ReuseQualificationTests(unittest.TestCase):
+    @patch("cad_library_ci.reuse._commit")
+    def test_same_qualified_tree_requires_exact_pr_merge_parents(self, commit):
+        base = "d" * 40
+        head = "c" * 40
+        tree = "e" * 40
+        commit.side_effect = [
+            {"tree": {"sha": tree}, "parents": [{"sha": base}]},
+            {
+                "tree": {"sha": tree},
+                "parents": [{"sha": base}, {"sha": head}],
+            },
+        ]
+        _require_same_qualified_tree(
+            repository="owner/repo",
+            source_sha="b" * 40,
+            qualified_source_sha="a" * 40,
+            base_sha=base,
+            head_sha=head,
+            token="token",
+        )
+
+    @patch("cad_library_ci.reuse._commit")
+    def test_same_qualified_tree_rejects_changed_tree(self, commit):
+        commit.side_effect = [
+            {"tree": {"sha": "1" * 40}, "parents": []},
+            {"tree": {"sha": "2" * 40}, "parents": []},
+        ]
+        with self.assertRaisesRegex(ValueError, "differs"):
+            _require_same_qualified_tree(
+                repository="owner/repo",
+                source_sha="b" * 40,
+                qualified_source_sha="a" * 40,
+                base_sha="d" * 40,
+                head_sha="c" * 40,
+                token="token",
+            )
+
     def test_rebind_plan_records_permanent_and_qualified_source(self):
         with tempfile.TemporaryDirectory() as tmp:
             candidate = Path(tmp)
