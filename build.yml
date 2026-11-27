@@ -1,6 +1,6 @@
 schema: 1
 branch: issue/108-ci-qualification-policy
-modules: [ci]
+modules: [ci, merge-policy]
 library: false
 models: []
 api_probes: []
