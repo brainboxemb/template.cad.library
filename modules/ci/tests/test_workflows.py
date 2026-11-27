@@ -21,6 +21,7 @@ class WorkflowTests(unittest.TestCase):
         self.assertIn("python -m cad_library_ci.reuse", ci)
         self.assertIn("steps.reuse.outputs.reuse != 'true'", ci)
         self.assertIn("steps.reuse.outputs.reuse == 'true'", ci)
+        self.assertIn("pull-requests: read", ci)
         self.assertIn("qualification_pr:", ci)
         self.assertIn("qualification_head_sha:", ci)
         self.assertIn("qualification_run_id:", ci)
