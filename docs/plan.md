@@ -2,6 +2,14 @@
 
 ## Now
 
+### #115 — make release publication repository-local
+
+Move strict release-command parsing, stable-head checks, annotated tag/GitHub
+Release publication and idempotent verification into `modules/release`.
+`.github/workflows/release.yml` must use only repository-local release code and
+must not checkout or call a reusable workflow from `tool.py.lib.ci`.
+
+
 ### #106 — explicit API-probe runs and isolated publication
 
 Keep `ci.yml` as the permanent API-probe capability/root contract and
@@ -96,7 +104,8 @@ remains full.
   published durable provenance with permanent `source_sha`, synthetic
   `qualified_source_sha` and reviewed `qualified_head_sha`;
 - every source-branch integration is executed through local `/merge` policy;
-- generic durable library release qualification and shared
-  `tool.py.lib.ci` publication are already accepted;
+- generic durable library release qualification is template-owned; release
+  publication is being moved from the historical shared `tool.py.lib.ci`
+  publisher into repository-local `modules/release` under #115;
 - the #47 stable-main release branch flow is accepted on template `main`
   and consumed by canonical Forge.

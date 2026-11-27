@@ -367,14 +367,16 @@ Publication is requested on a normal issue with:
 /release vX.Y.Z <exact-40-character-main-sha>
 ```
 
-The shared publisher still requires that SHA to equal current `main` HEAD and
-creates/verifies the annotated tag plus GitHub Release. After publication,
+The repository-local release module requires that SHA to equal current `main`
+HEAD and creates/verifies the annotated tag plus GitHub Release. The release
+workflow must not checkout another Brainbox repository or call an external
+reusable release workflow. After publication,
 synchronize `main -> dev` through `/merge` so version/changelog metadata
 returns to development. Do not rebase the shared `dev` branch.
 
 Update planning/status documentation on `dev` after the release; do not add
 `docs/plan.md` to the stable release-metadata commit.
 
-Pages is not consulted and is not release evidence. The release adapter must
-not reimplement tag creation, GitHub Release creation, stable-head checks or
-idempotent publication.
+Pages is not consulted and is not release evidence. `modules/release` owns tag
+creation, GitHub Release creation, stable-head checks and idempotent publication
+for every repository derived from this template.

@@ -413,12 +413,14 @@ single-parent and may change only `CHANGELOG.md` and the `project.version`
 value in `cadlib/pyproject.toml`. Any other path requires a new normal full stable
 qualification instead of baseline reuse.
 
-`.github/workflows/release.yml` checks out the exact requested source with
-history, performs that repository/template-owned evidence check, and then
-delegates tag/GitHub Release publication to released `tool.py.lib.ci`.
-Consumer-specific package/release-note rules remain in `cadlib/release.py`.
+`.github/workflows/release.yml` uses only repository-local `modules/release`
+code for strict request parsing, durable-evidence validation, stable-head
+validation, annotated tag creation and GitHub Release publication. It does not
+checkout another Brainbox repository and does not call a reusable publication
+workflow. Consumer-specific package/release-note rules remain in
+`cadlib/release.py`.
 
-The shared publisher still requires the requested SHA to equal `main` HEAD.
+The local publisher requires the requested SHA to equal `main` HEAD.
 The release tag therefore always names a stable commit even when its CAD
 product evidence comes from an unchanged earlier full stable baseline.
 

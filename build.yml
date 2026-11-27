@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/108-safe-artifact-download
-modules: [ci]
+branch: issue/115-local-release-publication
+modules: [release]
 library: false
 models: []
 api_probes: []
