@@ -63,14 +63,20 @@ promotion and release rules take precedence and cannot be weakened by this
 classification.
 
 Configured permanent lanes may reuse the `cad-qualification` artifact from the
-merged PR instead of executing the same CAD graph twice. Reuse requires one
-same-repository merged PR targeting that lane, exact permanent-commit ↔ PR-head
-Git-tree equality, the newest PR-specific central CI run to be green, and one
-live qualification artifact whose build-plan names that exact PR head. The
-durable plan is rebound to the permanent source SHA and records
-`qualified_source_sha`, PR number and CI run id. Missing, ambiguous, stale or
-non-identical evidence falls back to normal permanent qualification. The policy
-is opt-in per permanent branch; stable `main` is not special-cased into reuse.
+merged PR instead of executing the same CAD graph twice. Before merge, policy
+binds the exact green PR-specific CI run id and reviewed PR head SHA into the
+permanent workflow dispatch. The artifact itself names GitHub's synthetic PR
+merge commit as its `source_sha`; that commit must have exactly the reviewed
+`[base, head]` parents and its Git tree must exactly equal the permanent merge
+commit tree. This proves that the heavy PR qualification already ran against the
+reviewed head combined with the actual base.
+
+The durable plan is then rebound to the permanent source SHA while retaining
+`qualified_source_sha` for the synthetic PR merge commit,
+`qualified_head_sha` for the reviewed branch head, plus PR number and CI run
+id. Missing, ambiguous, stale, expired or non-identical evidence falls back to
+normal permanent qualification. The policy is opt-in per permanent branch;
+stable `main` is not special-cased into reuse.
 
 Pages remains a separate asynchronous publication consumer of durable build
 evidence. CAD qualification completion does not depend on Pages deployment.
