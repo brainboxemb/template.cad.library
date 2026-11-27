@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/115-local-release-publication
-modules: [release]
+branch: issue/115-local-release-contract-test
+modules: [ci]
 library: false
 models: []
 api_probes: []
