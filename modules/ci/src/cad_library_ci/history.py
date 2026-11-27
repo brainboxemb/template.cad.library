@@ -15,7 +15,8 @@ class HistoryError(RuntimeError):
 @dataclass(frozen=True)
 class ReusableQualification:
     pr_number: int
-    qualified_source_sha: str
+    head_sha: str
+    base_sha: str
     run_id: int
     artifact_id: int
 
@@ -121,81 +122,52 @@ def reusable_pr_qualification(
     branch: str,
     token: str,
     source_sha: str,
-    workflow_file: str = "ci.yml",
+    pr_number: int,
+    head_sha: str,
+    run_id: int,
     artifact_name: str = "cad-qualification",
 ) -> ReusableQualification | None:
-    """Find exact tree-identical successful PR evidence for one permanent commit."""
+    """Validate merge-policy-bound PR evidence for one permanent commit."""
 
     repo_value = parse.quote(repository, safe="/")
-    source_value = parse.quote(source_sha, safe="")
-    pulls = _json(
-        f"https://api.github.com/repos/{repo_value}/commits/{source_value}/pulls",
+    pr = _json(
+        f"https://api.github.com/repos/{repo_value}/pulls/{pr_number}",
         token,
     )
-    if not isinstance(pulls, list):
+    if not isinstance(pr, dict):
         return None
-
-    candidates = []
-    for pr in pulls:
-        head = pr.get("head") or {}
-        base = pr.get("base") or {}
-        head_repo = head.get("repo") or {}
-        if (
-            pr.get("state") == "closed"
-            and pr.get("merged_at")
-            and pr.get("merge_commit_sha") == source_sha
-            and base.get("ref") == branch
-            and head_repo.get("full_name") == repository
-            and isinstance(head.get("sha"), str)
-            and head.get("sha")
-        ):
-            candidates.append(pr)
-    if len(candidates) != 1:
-        return None
-
-    pr = candidates[0]
-    pr_number = pr.get("number")
-    head_sha = pr["head"]["sha"]
-    if type(pr_number) is not int:
-        return None
-
-    source_commit = _json(
-        f"https://api.github.com/repos/{repo_value}/git/commits/{source_value}",
-        token,
-    )
-    head_value = parse.quote(head_sha, safe="")
-    head_commit = _json(
-        f"https://api.github.com/repos/{repo_value}/git/commits/{head_value}",
-        token,
-    )
-    source_tree = (source_commit.get("tree") or {}).get("sha")
-    head_tree = (head_commit.get("tree") or {}).get("sha")
-    if not source_tree or source_tree != head_tree:
-        return None
-
-    workflow_value = parse.quote(workflow_file, safe="")
-    runs = _json(
-        f"https://api.github.com/repos/{repo_value}/actions/workflows/"
-        f"{workflow_value}/runs?event=pull_request&head_sha={head_value}&per_page=100",
-        token,
-    ).get("workflow_runs", [])
-    pr_runs = []
-    for run in runs:
-        pull_requests = run.get("pull_requests") or []
-        if any(item.get("number") == pr_number for item in pull_requests):
-            pr_runs.append(run)
-    if not pr_runs:
-        return None
-
-    latest = max(pr_runs, key=lambda run: int(run.get("id") or 0))
+    head = pr.get("head") or {}
+    base = pr.get("base") or {}
+    head_repo = head.get("repo") or {}
+    base_sha = base.get("sha")
     if (
-        latest.get("status") != "completed"
-        or latest.get("conclusion") != "success"
-        or latest.get("head_sha") != head_sha
+        pr.get("state") != "closed"
+        or not pr.get("merged_at")
+        or pr.get("merge_commit_sha") != source_sha
+        or base.get("ref") != branch
+        or head_repo.get("full_name") != repository
+        or head.get("sha") != head_sha
+        or not isinstance(base_sha, str)
+        or not base_sha
     ):
         return None
-    run_id = latest.get("id")
-    if type(run_id) is not int:
+
+    run = _json(
+        f"https://api.github.com/repos/{repo_value}/actions/runs/{run_id}",
+        token,
+    )
+    if (
+        not isinstance(run, dict)
+        or run.get("id") != run_id
+        or run.get("event") != "pull_request"
+        or run.get("path") != ".github/workflows/ci.yml"
+        or run.get("head_sha") != head_sha
+        or run.get("status") != "completed"
+        or run.get("conclusion") != "success"
+    ):
+        return None
+    head_branch = run.get("head_branch")
+    if isinstance(head_branch, str) and head_branch and head_branch != head.get("ref"):
         return None
 
     artifacts = _json(
@@ -215,7 +187,8 @@ def reusable_pr_qualification(
 
     return ReusableQualification(
         pr_number=pr_number,
-        qualified_source_sha=head_sha,
+        head_sha=head_sha,
+        base_sha=base_sha,
         run_id=run_id,
         artifact_id=matches[0]["id"],
     )
