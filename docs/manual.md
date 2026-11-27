@@ -12,10 +12,14 @@ branch: issue/25-multi-stage-verification
 modules: [ci, verification]
 library: false
 models: [simple-box]
+api_probes: []
 tasks: [test]
 ```
 
-Use `modules: all` or `models: all` for full selection. Product-changing `main` commits and `dev -> main` promotions run full. A validated release-metadata-only `main` commit runs only the library + release capability and preserves the previous full stable CAD evidence. This classification is identical whether the permanent stable run arrived as a normal `push` or as the merge-policy `workflow_dispatch`; the source commit itself must still be a single-parent metadata-only delta. Permanent `dev` and `exp` runs select changes since the last successful integration run; missing history falls back to full.
+Use `modules: all` or `models: all` for full selection. API probes are
+different: they are off by default, including full permanent builds. Select
+them only while developing the API with `api_probes: [<id>]` (or explicitly
+`api_probes: all`). Product-changing `main` commits and `dev -> main` promotions run full. A validated release-metadata-only `main` commit runs only the library + release capability and preserves the previous full stable CAD evidence. This classification is identical whether the permanent stable run arrived as a normal `push` or as the merge-policy `workflow_dispatch`; the source commit itself must still be a single-parent metadata-only delta. Permanent `dev` and `exp` runs select changes since the last successful integration run; missing history falls back to full.
 
 ### Merge execution
 
@@ -90,6 +94,38 @@ If the original PR becomes normally mergeable, use `/merge` instead.
 `cadlib/` is independent of model owners and internal modules. Selecting the library runs its source tests and builds one qualification wheel. This is not a release.
 
 A model can declare `needs: [cadlib]`; library changes then select that model and its downstream dependents.
+
+## API probes
+
+`api-probes/<id>/` is a separate owner type for temporary executable API/design
+experiments. It is not a physical CAD model and is never a Pages catalogue
+owner.
+
+Each probe has one `probe.yml`:
+
+```yaml
+schema: 1
+id: smoke
+builder: builder-pythonscad
+source: pythonscad/probe.py
+```
+
+Optional `needs` may name `cadlib` or internal module ids. The selected
+builder remains responsible for turning the source into its normal CAD
+artifacts.
+
+Probes have no per-owner `process` flag. Root `build.yml` is the activation
+boundary:
+
+```yaml
+api_probes: [smoke]
+```
+
+Absent or empty means no probes. Full `main`, `dev` and `exp` selection
+also keeps probes off. Results are written to
+`build/qualification/api-probes/<id>/` and, when explicitly present in a
+publication plan, to `build/<scope>/api-probes/<id>/` beside `models/`.
+Pages ignores API probe evidence.
 
 ## Model owners
 

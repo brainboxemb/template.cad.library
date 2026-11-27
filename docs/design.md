@@ -11,6 +11,11 @@ cadlib/
   src/<consumer package>/
   tests/
 
+api-probes/
+  <probe-id>/
+    probe.yml
+    <engine>/...
+
 models/
   ci.yml
   <model-id>/
@@ -35,7 +40,51 @@ modules/
 
 `cadlib/` is a repository role, not an import name. A Forge consumer can therefore expose `scpf` unchanged.
 
-A **model directory is the selection and publication owner**. Engine implementations are local implementations of that owner, never sibling owners.
+A **model directory is the selection and publication owner** for physical CAD.
+Engine implementations are local implementations of that owner, never sibling
+owners.
+
+API design experiments use the separate top-level `api-probes/` root. A probe
+is not a physical model owner, has no `model.yml`, and is never projected into
+Examples or Verification. `api-probes/<id>/probe.yml` declares one builder and
+one source. Root `build.yml.api_probes` is the only normal activation switch:
+probes are off by default even when model/library selection is full.
+
+## API probes
+
+API probes are temporary executable evidence for library/API design work. They
+reuse normal builder capabilities but deliberately do not inherit model
+presentation, multi-engine implementation sets, verification stages or model
+dependency semantics.
+
+The minimal owner contract is:
+
+```yaml
+schema: 1
+id: smoke
+builder: builder-pythonscad
+source: pythonscad/probe.py
+```
+
+A probe may declare `needs: [cadlib, <module-id>]` when its source imports the
+consumer library or another internal module. Builder-declared module dependencies
+are included automatically.
+
+Selection is explicit:
+
+```yaml
+api_probes: [smoke]
+```
+
+Omitting `api_probes` or setting it to `[]` runs no probes. `all` is
+available only as an explicit branch-local request. Full permanent
+`main`/`dev`/`exp` qualification still selects zero probes.
+
+Candidate evidence is retained below
+`build/qualification/api-probes/<id>/`. If a publication plan explicitly
+contains selected probes, they publish beside models below
+`build/<scope>/api-probes/<id>/`; an ordinary later plan with no selected
+probes removes that temporary probe evidence. Pages ignores the root.
 
 ## Model metadata and purpose
 
