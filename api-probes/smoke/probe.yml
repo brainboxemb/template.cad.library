@@ -1,0 +1,4 @@
+schema: 1
+id: smoke
+builder: builder-pythonscad
+source: pythonscad/probe.py
