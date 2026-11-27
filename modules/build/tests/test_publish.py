@@ -53,6 +53,63 @@ class PublishTests(unittest.TestCase):
                 "new",
             )
 
+    def test_selected_api_probe_is_published_beside_models(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            candidate, target = root / "candidate", root / "target"
+            probe = candidate / "api-probes" / "configuration"
+            probe.mkdir(parents=True)
+            (probe / "result.json").write_text(
+                json.dumps({"id": "configuration", "status": "pass"})
+            )
+            (probe / "solidcraft.json").write_text("{}")
+            update_scope(
+                target,
+                candidate,
+                {
+                    "active": [],
+                    "selected": [],
+                    "full": False,
+                    "source_sha": "probe-sha",
+                    "api_probes": {
+                        "available": ["configuration"],
+                        "selected": ["configuration"],
+                    },
+                },
+            )
+            self.assertTrue(
+                (target / "api-probes/configuration/solidcraft.json").is_file()
+            )
+            self.assertEqual(
+                json.loads(
+                    (target / "api-probes/configuration/source.json").read_text()
+                )["source_sha"],
+                "probe-sha",
+            )
+
+    def test_unselected_api_probes_are_removed_from_scope(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target = root / "target"
+            stale = target / "api-probes" / "old"
+            stale.mkdir(parents=True)
+            (stale / "result.json").write_text("{}")
+            update_scope(
+                target,
+                root / "candidate",
+                {
+                    "active": [],
+                    "selected": [],
+                    "full": False,
+                    "source_sha": "new",
+                    "api_probes": {
+                        "available": ["old"],
+                        "selected": [],
+                    },
+                },
+            )
+            self.assertFalse((target / "api-probes").exists())
+
     def test_release_only_stable_candidate_preserves_full_baseline(self):
         plan = {
             "release_only": True,
