@@ -46,17 +46,60 @@ def _extract_zip(data: bytes, candidate: Path):
         archive.extractall(candidate)
 
 
-def _tree_sha(repository: str, sha: str, token: str) -> str:
+def _commit(repository: str, sha: str, token: str) -> dict:
     repo_value = parse.quote(repository, safe="/")
     sha_value = parse.quote(sha, safe="")
     commit = _json(
         f"https://api.github.com/repos/{repo_value}/git/commits/{sha_value}",
         token,
     )
-    tree = (commit.get("tree") or {}).get("sha")
-    if not isinstance(tree, str) or not tree:
-        raise ValueError("cannot resolve qualification tree")
-    return tree
+    if not isinstance(commit, dict):
+        raise ValueError("cannot resolve qualification commit")
+    return commit
+
+
+def _artifact_source(candidate: Path) -> str:
+    path = candidate / "build-plan.json"
+    try:
+        plan = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(
+            "qualification artifact has no valid build-plan.json"
+        ) from exc
+    source = plan.get("source_sha")
+    if plan.get("schema") != 2 or not isinstance(source, str) or not source:
+        raise ValueError("qualification artifact provenance mismatch")
+    return source
+
+
+def _require_same_qualified_tree(
+    *,
+    repository: str,
+    source_sha: str,
+    qualified_source_sha: str,
+    base_sha: str,
+    head_sha: str,
+    token: str,
+):
+    source = _commit(repository, source_sha, token)
+    qualified = _commit(repository, qualified_source_sha, token)
+
+    source_tree = (source.get("tree") or {}).get("sha")
+    qualified_tree = (qualified.get("tree") or {}).get("sha")
+    if not source_tree or source_tree != qualified_tree:
+        raise ValueError(
+            "permanent source tree differs from qualified PR merge tree"
+        )
+
+    parents = [
+        parent.get("sha")
+        for parent in qualified.get("parents", [])
+        if isinstance(parent, dict)
+    ]
+    if parents != [base_sha, head_sha]:
+        raise ValueError(
+            "qualification artifact source is not the reviewed PR merge tree"
+        )
 
 
 def _rebind_plan(
@@ -64,6 +107,7 @@ def _rebind_plan(
     *,
     source_sha: str,
     qualified_source_sha: str,
+    qualified_head_sha: str,
     pr_number: int,
     run_id: int,
 ):
@@ -82,6 +126,7 @@ def _rebind_plan(
 
     plan["source_sha"] = source_sha
     plan["qualified_source_sha"] = qualified_source_sha
+    plan["qualified_head_sha"] = qualified_head_sha
     plan["qualification_reused"] = True
     plan["qualification_pr"] = pr_number
     plan["qualification_run_id"] = run_id
@@ -99,46 +144,71 @@ def materialize(
     source_sha: str,
     token: str,
     candidate: Path,
+    pr_number: int | None = None,
+    head_sha: str = "",
+    run_id: int | None = None,
 ) -> dict:
     project = load_project(repo)
     if branch not in project.reuse_pr_branches:
         return {"reuse": False, "reason": "branch-not-configured"}
+    if (
+        type(pr_number) is not int
+        or type(run_id) is not int
+        or not isinstance(head_sha, str)
+        or not head_sha
+    ):
+        return {"reuse": False, "reason": "no-merge-policy-binding"}
 
     evidence = reusable_pr_qualification(
         repository=repository,
         branch=branch,
         token=token,
         source_sha=source_sha,
+        pr_number=pr_number,
+        head_sha=head_sha,
+        run_id=run_id,
     )
     if evidence is None:
-        return {"reuse": False, "reason": "no-exact-pr-evidence"}
+        return {"reuse": False, "reason": "invalid-merge-policy-binding"}
 
     shutil.rmtree(candidate, ignore_errors=True)
     data = _download_artifact(repository, evidence.artifact_id, token)
     _extract_zip(data, candidate)
 
-    # Re-check exact tree identity after the artifact has been materialized.
-    if _tree_sha(repository, source_sha, token) != _tree_sha(
-        repository,
-        evidence.qualified_source_sha,
-        token,
-    ):
-        raise ValueError("source tree changed during qualification reuse")
-
+    qualified_source_sha = _artifact_source(candidate)
+    _require_same_qualified_tree(
+        repository=repository,
+        source_sha=source_sha,
+        qualified_source_sha=qualified_source_sha,
+        base_sha=evidence.base_sha,
+        head_sha=evidence.head_sha,
+        token=token,
+    )
     _rebind_plan(
         candidate,
         source_sha=source_sha,
-        qualified_source_sha=evidence.qualified_source_sha,
+        qualified_source_sha=qualified_source_sha,
+        qualified_head_sha=evidence.head_sha,
         pr_number=evidence.pr_number,
         run_id=evidence.run_id,
     )
     return {
         "reuse": True,
         "reason": "tree-identical-green-pr",
-        "qualified_source_sha": evidence.qualified_source_sha,
+        "qualified_source_sha": qualified_source_sha,
+        "qualified_head_sha": evidence.head_sha,
         "pr_number": evidence.pr_number,
         "run_id": evidence.run_id,
     }
+
+
+def _optional_int(value: str) -> int | None:
+    if not value:
+        return None
+    try:
+        return int(value)
+    except ValueError:
+        return None
 
 
 def main():
@@ -147,6 +217,9 @@ def main():
     parser.add_argument("--repository", required=True)
     parser.add_argument("--branch", required=True)
     parser.add_argument("--source-sha", required=True)
+    parser.add_argument("--qualification-pr", default="")
+    parser.add_argument("--qualification-head-sha", default="")
+    parser.add_argument("--qualification-run-id", default="")
     parser.add_argument("--candidate", type=Path, required=True)
     parser.add_argument("--github-output", type=Path, required=True)
     args = parser.parse_args()
@@ -168,6 +241,9 @@ def main():
             source_sha=args.source_sha,
             token=token,
             candidate=args.candidate,
+            pr_number=_optional_int(args.qualification_pr),
+            head_sha=args.qualification_head_sha,
+            run_id=_optional_int(args.qualification_run_id),
         )
     except ConfigError:
         raise
@@ -194,6 +270,7 @@ def main():
     if result["reuse"]:
         values.update(
             qualified_source_sha=result["qualified_source_sha"],
+            qualified_head_sha=result["qualified_head_sha"],
             pr_number=result["pr_number"],
             run_id=result["run_id"],
         )
