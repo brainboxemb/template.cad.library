@@ -56,39 +56,31 @@ class HistoryTests(unittest.TestCase):
         self.assertIn("branch=exp&", get.call_args.args[0])
 
     @patch("cad_library_ci.history._json")
-    def test_reusable_pr_qualification_requires_exact_tree_and_green_latest_run(
-        self,
-        get,
-    ):
+    def test_reusable_pr_qualification_accepts_merge_policy_binding(self, get):
         source = "a" * 40
         head = "b" * 40
-        tree = "c" * 40
+        base = "c" * 40
         get.side_effect = [
-            [
-                {
-                    "number": 12,
-                    "state": "closed",
-                    "merged_at": "2026-01-01T00:00:00Z",
-                    "merge_commit_sha": source,
-                    "base": {"ref": "exp"},
-                    "head": {
-                        "sha": head,
-                        "repo": {"full_name": "owner/repo"},
-                    },
-                }
-            ],
-            {"tree": {"sha": tree}},
-            {"tree": {"sha": tree}},
             {
-                "workflow_runs": [
-                    {
-                        "id": 31,
-                        "status": "completed",
-                        "conclusion": "success",
-                        "head_sha": head,
-                        "pull_requests": [{"number": 12}],
-                    }
-                ]
+                "number": 12,
+                "state": "closed",
+                "merged_at": "2026-01-01T00:00:00Z",
+                "merge_commit_sha": source,
+                "base": {"ref": "exp", "sha": base},
+                "head": {
+                    "ref": "issue/12-change",
+                    "sha": head,
+                    "repo": {"full_name": "owner/repo"},
+                },
+            },
+            {
+                "id": 31,
+                "event": "pull_request",
+                "path": ".github/workflows/ci.yml",
+                "head_sha": head,
+                "head_branch": "issue/12-change",
+                "status": "completed",
+                "conclusion": "success",
             },
             {
                 "artifacts": [
@@ -106,92 +98,80 @@ class HistoryTests(unittest.TestCase):
             branch="exp",
             token="token",
             source_sha=source,
+            pr_number=12,
+            head_sha=head,
+            run_id=31,
         )
         self.assertEqual(evidence.pr_number, 12)
-        self.assertEqual(evidence.qualified_source_sha, head)
+        self.assertEqual(evidence.head_sha, head)
+        self.assertEqual(evidence.base_sha, base)
         self.assertEqual(evidence.run_id, 31)
         self.assertEqual(evidence.artifact_id, 99)
 
     @patch("cad_library_ci.history._json")
-    def test_reusable_pr_qualification_rejects_older_green_when_latest_failed(
-        self,
-        get,
-    ):
+    def test_reusable_pr_qualification_rejects_failed_bound_run(self, get):
         source = "d" * 40
         head = "e" * 40
-        tree = "f" * 40
         get.side_effect = [
-            [
-                {
-                    "number": 13,
-                    "state": "closed",
-                    "merged_at": "2026-01-01T00:00:00Z",
-                    "merge_commit_sha": source,
-                    "base": {"ref": "exp"},
-                    "head": {
-                        "sha": head,
-                        "repo": {"full_name": "owner/repo"},
-                    },
-                }
-            ],
-            {"tree": {"sha": tree}},
-            {"tree": {"sha": tree}},
             {
-                "workflow_runs": [
-                    {
-                        "id": 42,
-                        "status": "completed",
-                        "conclusion": "failure",
-                        "head_sha": head,
-                        "pull_requests": [{"number": 13}],
-                    },
-                    {
-                        "id": 41,
-                        "status": "completed",
-                        "conclusion": "success",
-                        "head_sha": head,
-                        "pull_requests": [{"number": 13}],
-                    },
-                ]
+                "number": 13,
+                "state": "closed",
+                "merged_at": "2026-01-01T00:00:00Z",
+                "merge_commit_sha": source,
+                "base": {"ref": "exp", "sha": "f" * 40},
+                "head": {
+                    "ref": "issue/13-change",
+                    "sha": head,
+                    "repo": {"full_name": "owner/repo"},
+                },
+            },
+            {
+                "id": 42,
+                "event": "pull_request",
+                "path": ".github/workflows/ci.yml",
+                "head_sha": head,
+                "head_branch": "issue/13-change",
+                "status": "completed",
+                "conclusion": "failure",
             },
         ]
-
         self.assertIsNone(
             reusable_pr_qualification(
                 repository="owner/repo",
                 branch="exp",
                 token="token",
                 source_sha=source,
+                pr_number=13,
+                head_sha=head,
+                run_id=42,
             )
         )
 
     @patch("cad_library_ci.history._json")
-    def test_reusable_pr_qualification_rejects_changed_merge_tree(self, get):
+    def test_reusable_pr_qualification_rejects_wrong_binding(self, get):
         source = "1" * 40
         head = "2" * 40
-        get.side_effect = [
-            [
-                {
-                    "number": 14,
-                    "state": "closed",
-                    "merged_at": "2026-01-01T00:00:00Z",
-                    "merge_commit_sha": source,
-                    "base": {"ref": "exp"},
-                    "head": {
-                        "sha": head,
-                        "repo": {"full_name": "owner/repo"},
-                    },
-                }
-            ],
-            {"tree": {"sha": "3" * 40}},
-            {"tree": {"sha": "4" * 40}},
-        ]
+        get.return_value = {
+            "number": 14,
+            "state": "closed",
+            "merged_at": "2026-01-01T00:00:00Z",
+            "merge_commit_sha": source,
+            "base": {"ref": "dev", "sha": "3" * 40},
+            "head": {
+                "ref": "issue/14-change",
+                "sha": head,
+                "repo": {"full_name": "owner/repo"},
+            },
+        }
         self.assertIsNone(
             reusable_pr_qualification(
                 repository="owner/repo",
                 branch="exp",
                 token="token",
                 source_sha=source,
+                pr_number=14,
+                head_sha=head,
+                run_id=43,
             )
         )
 
