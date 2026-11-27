@@ -1,7 +1,7 @@
 schema: 1
-branch: issue/106-api-probe-runs
-modules: [ci, build]
+branch: issue/108-ci-qualification-policy
+modules: [ci]
 library: false
 models: []
-api_probes: [smoke]
+api_probes: []
 tasks: [test]
