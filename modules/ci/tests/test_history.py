@@ -5,6 +5,7 @@ from cad_library_ci.history import (
     changed_paths,
     changed_paths_from_base,
     changed_paths_from_parent,
+    discover_reusable_pr_qualification,
     last_successful_dev_sha,
     reusable_pr_qualification,
 )
@@ -172,6 +173,125 @@ class HistoryTests(unittest.TestCase):
                 pr_number=14,
                 head_sha=head,
                 run_id=43,
+            )
+        )
+
+    @patch("cad_library_ci.history._json")
+    def test_discovery_uses_newest_green_run_for_associated_merged_pr(self, get):
+        source = "4" * 40
+        head = "5" * 40
+        base = "6" * 40
+        get.side_effect = [
+            [
+                {
+                    "number": 15,
+                    "state": "closed",
+                    "merged_at": "2026-01-01T00:00:00Z",
+                    "merge_commit_sha": source,
+                    "base": {"ref": "exp", "sha": base},
+                    "head": {
+                        "ref": "issue/15-change",
+                        "sha": head,
+                        "repo": {"full_name": "owner/repo"},
+                    },
+                }
+            ],
+            {
+                "workflow_runs": [
+                    {
+                        "id": 50,
+                        "event": "pull_request",
+                        "path": ".github/workflows/ci.yml",
+                        "head_sha": head,
+                        "head_branch": "issue/15-change",
+                        "created_at": "2026-01-01T00:00:00Z",
+                        "status": "completed",
+                        "conclusion": "success",
+                    },
+                    {
+                        "id": 51,
+                        "event": "pull_request",
+                        "path": ".github/workflows/ci.yml",
+                        "head_sha": head,
+                        "head_branch": "issue/15-change",
+                        "created_at": "2026-01-02T00:00:00Z",
+                        "status": "completed",
+                        "conclusion": "success",
+                    },
+                ]
+            },
+            {
+                "artifacts": [
+                    {
+                        "id": 101,
+                        "name": "cad-qualification",
+                        "expired": False,
+                    }
+                ]
+            },
+        ]
+        evidence = discover_reusable_pr_qualification(
+            repository="owner/repo",
+            branch="exp",
+            token="token",
+            source_sha=source,
+        )
+        self.assertEqual(evidence.pr_number, 15)
+        self.assertEqual(evidence.head_sha, head)
+        self.assertEqual(evidence.base_sha, base)
+        self.assertEqual(evidence.run_id, 51)
+        self.assertEqual(evidence.artifact_id, 101)
+
+    @patch("cad_library_ci.history._json")
+    def test_discovery_falls_back_when_newest_candidate_run_failed(self, get):
+        source = "7" * 40
+        head = "8" * 40
+        get.side_effect = [
+            [
+                {
+                    "number": 16,
+                    "state": "closed",
+                    "merged_at": "2026-01-01T00:00:00Z",
+                    "merge_commit_sha": source,
+                    "base": {"ref": "exp", "sha": "9" * 40},
+                    "head": {
+                        "ref": "issue/16-change",
+                        "sha": head,
+                        "repo": {"full_name": "owner/repo"},
+                    },
+                }
+            ],
+            {
+                "workflow_runs": [
+                    {
+                        "id": 61,
+                        "event": "pull_request",
+                        "path": ".github/workflows/ci.yml",
+                        "head_sha": head,
+                        "head_branch": "issue/16-change",
+                        "created_at": "2026-01-02T00:00:00Z",
+                        "status": "completed",
+                        "conclusion": "failure",
+                    },
+                    {
+                        "id": 60,
+                        "event": "pull_request",
+                        "path": ".github/workflows/ci.yml",
+                        "head_sha": head,
+                        "head_branch": "issue/16-change",
+                        "created_at": "2026-01-01T00:00:00Z",
+                        "status": "completed",
+                        "conclusion": "success",
+                    },
+                ]
+            },
+        ]
+        self.assertIsNone(
+            discover_reusable_pr_qualification(
+                repository="owner/repo",
+                branch="exp",
+                token="token",
+                source_sha=source,
             )
         )
 

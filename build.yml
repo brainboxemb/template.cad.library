@@ -1,6 +1,6 @@
 schema: 1
-branch: issue/108-ci-qualification-policy
-modules: [ci, merge-policy]
+branch: issue/108-reuse-discovery-fallback
+modules: [ci]
 library: false
 models: []
 api_probes: []
