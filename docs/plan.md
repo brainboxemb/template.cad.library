@@ -2,6 +2,18 @@
 
 ## Now
 
+### #106 — explicit API-probe runs and isolated publication
+
+Keep `ci.yml` as the permanent API-probe capability/root contract and
+`build.yml` as the temporary branch-local override. Add a dedicated API Probe
+workflow that can run existing probes against `main`, `dev`, `exp` or
+another requested source without changing source configuration.
+
+Probe publication must be independent from model publication: selected probes
+replace only their own `build/<scope>/api-probes/<id>/` evidence; unselected
+probes and all `models/` output remain untouched. Ordinary model/library builds
+must preserve existing probe evidence.
+
 ### #95 — latest PR-specific central CI in merge policy
 
 When the same permanent head SHA is reused by a replacement pull request,

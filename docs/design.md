@@ -47,8 +47,13 @@ owners.
 API design experiments use the separate top-level `api-probes/` root. A probe
 is not a physical model owner, has no `model.yml`, and is never projected into
 Examples or Verification. `api-probes/<id>/probe.yml` declares one builder and
-one source. Root `build.yml.api_probes` is the only normal activation switch:
-probes are off by default even when model/library selection is full.
+one source.
+
+Root `ci.yml` owns the permanent repository capability/root declaration.
+Root `build.yml.api_probes` is only the branch-local override used while an
+API change is actively being developed. Existing `main`, `dev` or `exp`
+may also be probed explicitly through the dedicated API Probe workflow without
+changing `build.yml`.
 
 ## API probes
 
@@ -80,11 +85,21 @@ Omitting `api_probes` or setting it to `[]` runs no probes. `all` is
 available only as an explicit branch-local request. Full permanent
 `main`/`dev`/`exp` qualification still selects zero probes.
 
-Candidate evidence is retained below
-`build/qualification/api-probes/<id>/`. If a publication plan explicitly
-contains selected probes, they publish beside models below
-`build/<scope>/api-probes/<id>/`; an ordinary later plan with no selected
-probes removes that temporary probe evidence. Pages ignores the root.
+Two execution paths reuse the same discovery and runtime implementation:
+
+1. branch-local development: `build.yml.api_probes` selects probes inside
+   ordinary PR qualification;
+2. explicit investigation: `.github/workflows/api-probe.yml` selects one or
+   more probes against a requested source ref.
+
+Probe-only execution writes candidate evidence below
+`build/api-probe-qualification/api-probes/<id>/`. For permanent source refs,
+the dedicated probe publisher updates only the selected owners below
+`build/<scope>/api-probes/<id>/`. Existing unselected probe evidence and all
+`models/` output are preserved. Ordinary model/library publication likewise
+preserves existing API-probe evidence when no probes were selected.
+
+Pages ignores the API-probe root.
 
 ## Model metadata and purpose
 
