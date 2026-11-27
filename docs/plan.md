@@ -2,48 +2,6 @@
 
 ## Now
 
-### #108 — configurable qualification policy and PR evidence reuse
-
-Implemented on `dev` by PR #109. Root `ci.yml` owns the optional docs-only
-pull-request policy and the permanent lanes allowed to reuse an already-green
-PR qualification.
-
-Docs-only classification is fail-safe and lower priority than permanent-lane
-promotion/release rules. A PR is lightweight only when its complete base→head
-delta is below configured prefixes; it runs only configured lightweight
-modules, with no library/model/API-probe qualification.
-
-Permanent reuse prefers a merge-policy binding: before integration, `/merge`
-binds the reviewed PR head and exact green PR CI run into the permanent workflow
-dispatch. Until stable `main` carries that merge-policy revision, configured
-permanent lanes may conservatively discover the single merged PR associated
-with the permanent commit and use only the newest central PR run for its exact
-head/ref. In both paths, the artifact's original `source_sha` is GitHub's
-synthetic PR merge commit; that commit must have the reviewed base/head as its
-two parents and its Git tree must exactly equal the permanent merge tree.
-Durable evidence records the permanent `source_sha`, synthetic
-`qualified_source_sha`, reviewed `qualified_head_sha`, PR number and CI run
-id. Missing, ambiguous, failed, stale or mismatched evidence falls back to
-normal CAD-CI.
-
-PR #109 itself proved the lightweight infrastructure selection with only the
-`ci` and `merge-policy` modules: 59 CI tests and 34 merge-policy tests passed
-with zero selected models and zero selected API probes. A separate docs-only PR
-now verifies the configured path classification against the merged `dev`
-implementation.
-
-The first discovery smoke correctly failed closed because the permanent build
-job lacked `pull-requests: read`, which is required to resolve the PR
-associated with a merge commit. Adding that permission exposed the next
-transport boundary: GitHub's artifact endpoint redirects to signed object
-storage, so the downloader must not forward the GitHub bearer token to the blob
-host. Artifact download now handles the redirect explicitly: GitHub API with
-the workflow token, signed blob URL without it. A final end-to-end merge
-validates that the artifact is reused and the CAD execution step is skipped.
-
-Pages remains asynchronously dispatched after durable build publication; CAD
-compiler qualification does not wait for Pages deployment.
-
 ### #106 — explicit API-probe runs and isolated publication
 
 Keep `ci.yml` as the permanent API-probe capability/root contract and
@@ -131,6 +89,12 @@ remains full.
 - Pages links durable CAD artifacts instead of duplicating them;
 - pull requests run only central `ci`; permanent `dev`/`main` runs use one
   `build` job and dispatch independent Pages after durable publication;
+- #108 qualification-cost policy is accepted on `dev`: docs-only PR #110
+  ran only the configured `ci` module with zero models/probes (run
+  46006251208), and permanent `dev` run 46007495178 reused PR #113
+  qualification run 46007428248, skipped `Run selected project items`, and
+  published durable provenance with permanent `source_sha`, synthetic
+  `qualified_source_sha` and reviewed `qualified_head_sha`;
 - every source-branch integration is executed through local `/merge` policy;
 - generic durable library release qualification and shared
   `tool.py.lib.ci` publication are already accepted;
