@@ -2,7 +2,10 @@
 
 Read `docs/plan.md`, `docs/design.md` and `docs/manual.md` before changing the repository.
 
-Normal product work starts from `dev` on a temporary branch. Optional experimental work starts from permanent `exp` on a temporary branch; sync `dev -> exp` and integrate completed experiments through `exp -> dev`. Never promote `exp` directly to `main`. Set `build.yml.branch` to the actual branch and select the necessary library, modules and **physical model owners**. Squash normal temporary branches into `dev`; promote `dev` to `main` with a merge commit only when an explicit product stabilization is intended.
+Normal product work starts from `dev` on a temporary branch. Optional experimental work starts from permanent `exp` on a temporary branch; sync `dev -> exp` and integrate completed experiments through `exp -> dev`. Never promote `exp` directly to `main`. Set `build.yml.branch` to the actual branch and select the necessary library,
+modules and **physical model owners**. API probes are a separate explicit
+selection axis: keep `api_probes: []` unless the branch is deliberately
+developing/proving an API probe. Squash normal temporary branches into `dev`; promote `dev` to `main` with a merge commit only when an explicit product stabilization is intended.
 
 Release preparation is separate: create `release/vX.Y.Z` from stable `main` and change only `CHANGELOG.md` and the `project.version` value in `cadlib/pyproject.toml`. Merge that short-lived release branch directly to `main` through `/merge`. Release-only stable commits reuse the previous full `build/main` product qualification; they must not rebuild or replace unchanged model evidence. After publication, synchronize the stable-only release commit back with `main -> dev`. Never rebase the shared permanent `dev` branch.
 
@@ -36,7 +39,11 @@ reviewed `/merge-resolved` recovery only after a separate same-repository
 The resolution PR is review-only and must never be merged normally. Do not use
 this path for temporary, release or governance PRs.
 
-The repository root for CAD ownership is `models/`, matching `template.cad.model-project`. Do not reintroduce `examples/` as an execution owner root.
+The repository root for physical CAD ownership is `models/`, matching
+`template.cad.model-project`. Do not reintroduce `examples/` as an execution
+owner root. Temporary executable API/design evidence belongs under
+`api-probes/<id>/probe.yml`; probes are opt-in through root `build.yml`, are
+off in normal full permanent builds, and are not Pages/model-catalogue owners.
 
 One `models/<id>/` directory is one physical owner. Multiple engine implementations belong under that owner and are declared in its `ci.yml`. Do not create sibling owners such as `model-build123d` or `model-solidcraft` solely to represent engines.
 

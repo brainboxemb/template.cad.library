@@ -1,6 +1,7 @@
 schema: 1
-branch: issue/100-resolved-permanent-head-evidence
-modules: [merge-policy]
+branch: issue/104-api-probes
+modules: [ci, build]
 library: false
 models: []
+api_probes: [smoke]
 tasks: [test]
