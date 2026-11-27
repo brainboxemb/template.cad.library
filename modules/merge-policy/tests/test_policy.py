@@ -13,6 +13,7 @@ from cad_model_merge_policy.__main__ import (
     require_durable_permanent_head,
     require_green_ci,
     require_main_governance_paths,
+    run_normal,
     run_resolved,
 )
 from cad_model_merge_policy.policy import (
@@ -352,7 +353,8 @@ class MergePolicyTests(unittest.TestCase):
                 ),
             ]
         }
-        require_green_ci("owner/repo", "sha", 25, "token")
+        latest = require_green_ci("owner/repo", "sha", 25, "token")
+        self.assertEqual(latest["id"], 20)
         self.assertIn(
             "event=pull_request",
             api.call_args.args[1],
@@ -386,7 +388,8 @@ class MergePolicyTests(unittest.TestCase):
                 ),
             ]
         }
-        require_green_ci("owner/repo", "sha", 25, "token")
+        latest = require_green_ci("owner/repo", "sha", 25, "token")
+        self.assertEqual(latest["id"], 103)
 
     @patch("cad_model_merge_policy.__main__.api")
     def test_latest_pending_ci_blocks_merge_even_after_older_green(self, api):
@@ -454,7 +457,8 @@ class MergePolicyTests(unittest.TestCase):
                 ),
             ]
         }
-        require_green_ci("owner/repo", "sha", 25, "token")
+        latest = require_green_ci("owner/repo", "sha", 25, "token")
+        self.assertEqual(latest["id"], 21)
 
     @patch("cad_model_merge_policy.__main__.api")
     def test_missing_pr_specific_ci_blocks_merge(self, api):
@@ -480,6 +484,58 @@ class MergePolicyTests(unittest.TestCase):
         with self.assertRaisesRegex(MergePolicyError, "no central ci"):
             require_green_ci("owner/repo", "sha", 25, "token")
 
+    def test_normal_merge_dispatches_exact_green_ci_binding(self):
+        args = SimpleNamespace(
+            repository="owner/repo",
+            pull_request_number=25,
+        )
+        pr = {
+            "state": "open",
+            "merged": False,
+            "draft": False,
+            "base": {"ref": "exp"},
+            "head": {
+                "ref": "issue/25-change",
+                "sha": "a" * 40,
+            },
+        }
+        green = {
+            "id": 321,
+            "status": "completed",
+            "conclusion": "success",
+        }
+        with patch(
+            "cad_model_merge_policy.__main__.api",
+            side_effect=[
+                pr,
+                {"merged": True, "sha": "b" * 40},
+            ],
+        ), patch(
+            "cad_model_merge_policy.__main__.require_green_ci",
+            return_value=green,
+        ), patch(
+            "cad_model_merge_policy.__main__.dispatch_workflow",
+        ) as dispatch:
+            self.assertEqual(run_normal(args, "token"), "b" * 40)
+
+        dispatch.assert_any_call(
+            "owner/repo",
+            "ci.yml",
+            "exp",
+            "token",
+            inputs={
+                "qualification_pr": 25,
+                "qualification_head_sha": "a" * 40,
+                "qualification_run_id": 321,
+            },
+        )
+        dispatch.assert_any_call(
+            "owner/repo",
+            "branch-cleanup.yml",
+            "exp",
+            "token",
+        )
+
     @patch("cad_model_merge_policy.__main__.api")
     def test_dispatch_workflow_targets_local_workflow_and_base_ref(self, api):
         dispatch_workflow("owner/repo", "ci.yml", "dev", "token")
@@ -489,6 +545,34 @@ class MergePolicyTests(unittest.TestCase):
             "token",
             method="POST",
             body={"ref": "dev"},
+        )
+
+    @patch("cad_model_merge_policy.__main__.api")
+    def test_dispatch_workflow_can_bind_qualification_inputs(self, api):
+        dispatch_workflow(
+            "owner/repo",
+            "ci.yml",
+            "exp",
+            "token",
+            inputs={
+                "qualification_pr": 25,
+                "qualification_head_sha": "a" * 40,
+                "qualification_run_id": 123,
+            },
+        )
+        api.assert_called_once_with(
+            "owner/repo",
+            "actions/workflows/ci.yml/dispatches",
+            "token",
+            method="POST",
+            body={
+                "ref": "exp",
+                "inputs": {
+                    "qualification_pr": "25",
+                    "qualification_head_sha": "a" * 40,
+                    "qualification_run_id": "123",
+                },
+            },
         )
 
     @patch("cad_model_merge_policy.__main__.api")
