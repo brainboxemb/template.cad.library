@@ -4,22 +4,29 @@
 
 ### #108 — configurable qualification policy and PR evidence reuse
 
-Move CI cost policy into the library template instead of consumer-specific
-workarounds. Root `ci.yml` may declare a docs-only pull-request policy and
-which permanent lanes may reuse an already-green PR qualification.
+Implemented on `dev` by PR #109. Root `ci.yml` owns the optional docs-only
+pull-request policy and the permanent lanes allowed to reuse an already-green
+PR qualification.
 
 Docs-only classification is fail-safe and lower priority than permanent-lane
 promotion/release rules. A PR is lightweight only when its complete base→head
 delta is below configured prefixes; it runs only configured lightweight
 modules, with no library/model/API-probe qualification.
 
-Permanent evidence reuse is stricter: GitHub must associate the permanent
-source commit with one merged same-repository PR targeting that lane, the
-latest PR-specific central CI run for the exact head must be green, its
-`cad-qualification` artifact must be live, and the permanent commit tree must
-exactly equal the qualified PR-head tree. Reused evidence is rebound to the
-permanent source SHA while retaining `qualified_source_sha` provenance.
-Any missing/ambiguous condition falls back to the existing normal CAD-CI run.
+Permanent reuse is merge-policy-bound. Before integration, `/merge` binds the
+reviewed PR head and exact green PR CI run into the permanent workflow
+dispatch. The artifact's original `source_sha` is GitHub's synthetic PR merge
+commit; that commit must have the reviewed base/head as its two parents and its
+Git tree must exactly equal the permanent merge tree. Durable evidence records
+the permanent `source_sha`, synthetic `qualified_source_sha`, reviewed
+`qualified_head_sha`, PR number and CI run id. Any missing or mismatched
+evidence falls back to normal CAD-CI.
+
+PR #109 itself proved the lightweight infrastructure selection with only the
+`ci` and `merge-policy` modules: 59 CI tests and 34 merge-policy tests passed
+with zero selected models and zero selected API probes. A separate docs-only PR
+now verifies the configured path classification against the merged `dev`
+implementation.
 
 Pages remains asynchronously dispatched after durable build publication; CAD
 compiler qualification does not wait for Pages deployment.
