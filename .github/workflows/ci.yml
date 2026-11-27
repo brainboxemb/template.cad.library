@@ -6,6 +6,22 @@ on:
   push:
     branches: [dev, main, exp]
   workflow_dispatch:
+    inputs:
+      qualification_pr:
+        description: Merged PR number whose green qualification may be reused.
+        required: false
+        type: string
+        default: ""
+      qualification_head_sha:
+        description: Exact reviewed PR head SHA bound by merge policy.
+        required: false
+        type: string
+        default: ""
+      qualification_run_id:
+        description: Exact green PR CI run id bound by merge policy.
+        required: false
+        type: string
+        default: ""
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -96,6 +112,9 @@ jobs:
           --repository "${{ github.repository }}"
           --branch "${{ github.ref_name }}"
           --source-sha "${{ steps.source.outputs.sha }}"
+          --qualification-pr "${{ github.event.inputs.qualification_pr || '' }}"
+          --qualification-head-sha "${{ github.event.inputs.qualification_head_sha || '' }}"
+          --qualification-run-id "${{ github.event.inputs.qualification_run_id || '' }}"
           --candidate build/qualification
           --github-output "$GITHUB_OUTPUT"
 
