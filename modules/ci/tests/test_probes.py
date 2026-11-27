@@ -8,6 +8,7 @@ from unittest.mock import patch
 from cad_library_ci.batch import run_batches
 from cad_library_ci.config import load_project
 from cad_library_ci.items import discover_modules
+from cad_library_ci.probe_run import _selection
 from cad_library_ci.probes import discover_api_probes, select_api_probes
 
 
@@ -29,6 +30,10 @@ class ApiProbeTests(unittest.TestCase):
             [probe.id for probe in select_api_probes(self.probes, ("smoke",))],
             ["smoke"],
         )
+
+    def test_manual_probe_selection_accepts_ids_or_all(self):
+        self.assertEqual(_selection("smoke,other,smoke"), ("smoke", "other"))
+        self.assertIsNone(_selection("all"))
 
     def test_probe_uses_own_output_root_in_runtime_manifest(self):
         manifests = []
