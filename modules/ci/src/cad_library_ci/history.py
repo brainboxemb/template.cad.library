@@ -3,12 +3,22 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 import subprocess
 from urllib import parse, request
 
 
 class HistoryError(RuntimeError):
     """GitHub or Git history cannot provide a safe incremental baseline."""
+
+
+@dataclass(frozen=True)
+class ReusableQualification:
+    pr_number: int
+    head_sha: str
+    base_sha: str
+    run_id: int
+    artifact_id: int
 
 
 def _json(url: str, token: str):
@@ -104,3 +114,81 @@ def changed_paths_from_base(repo, base_ref: str, target: str = "HEAD") -> tuple[
     if not baseline:
         return None
     return changed_paths(repo, baseline, target)
+
+
+def reusable_pr_qualification(
+    *,
+    repository: str,
+    branch: str,
+    token: str,
+    source_sha: str,
+    pr_number: int,
+    head_sha: str,
+    run_id: int,
+    artifact_name: str = "cad-qualification",
+) -> ReusableQualification | None:
+    """Validate merge-policy-bound PR evidence for one permanent commit."""
+
+    repo_value = parse.quote(repository, safe="/")
+    pr = _json(
+        f"https://api.github.com/repos/{repo_value}/pulls/{pr_number}",
+        token,
+    )
+    if not isinstance(pr, dict):
+        return None
+    head = pr.get("head") or {}
+    base = pr.get("base") or {}
+    head_repo = head.get("repo") or {}
+    base_sha = base.get("sha")
+    if (
+        pr.get("state") != "closed"
+        or not pr.get("merged_at")
+        or pr.get("merge_commit_sha") != source_sha
+        or base.get("ref") != branch
+        or head_repo.get("full_name") != repository
+        or head.get("sha") != head_sha
+        or not isinstance(base_sha, str)
+        or not base_sha
+    ):
+        return None
+
+    run = _json(
+        f"https://api.github.com/repos/{repo_value}/actions/runs/{run_id}",
+        token,
+    )
+    if (
+        not isinstance(run, dict)
+        or run.get("id") != run_id
+        or run.get("event") != "pull_request"
+        or run.get("path") != ".github/workflows/ci.yml"
+        or run.get("head_sha") != head_sha
+        or run.get("status") != "completed"
+        or run.get("conclusion") != "success"
+    ):
+        return None
+    head_branch = run.get("head_branch")
+    if isinstance(head_branch, str) and head_branch and head_branch != head.get("ref"):
+        return None
+
+    artifacts = _json(
+        f"https://api.github.com/repos/{repo_value}/actions/runs/{run_id}/artifacts"
+        "?per_page=100",
+        token,
+    ).get("artifacts", [])
+    matches = [
+        artifact
+        for artifact in artifacts
+        if artifact.get("name") == artifact_name
+        and artifact.get("expired") is False
+        and type(artifact.get("id")) is int
+    ]
+    if len(matches) != 1:
+        return None
+
+    return ReusableQualification(
+        pr_number=pr_number,
+        head_sha=head_sha,
+        base_sha=base_sha,
+        run_id=run_id,
+        artifact_id=matches[0]["id"],
+    )

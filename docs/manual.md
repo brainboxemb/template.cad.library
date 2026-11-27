@@ -21,6 +21,53 @@ different: they are off by default, including full permanent builds. Select
 them only while developing the API with `api_probes: [<id>]` (or explicitly
 `api_probes: all`). Product-changing `main` commits and `dev -> main` promotions run full. A validated release-metadata-only `main` commit runs only the library + release capability and preserves the previous full stable CAD evidence. This classification is identical whether the permanent stable run arrived as a normal `push` or as the merge-policy `workflow_dispatch`; the source commit itself must still be a single-parent metadata-only delta. Permanent `dev` and `exp` runs select changes since the last successful integration run; missing history falls back to full.
 
+### Qualification policy
+
+Repository-wide cost policy belongs in root `ci.yml`, not in individual
+feature branches. The template baseline uses:
+
+```yaml
+qualification:
+  pull_requests:
+    docs_only:
+      prefixes:
+        - docs/
+      modules:
+        - ci
+  permanent:
+    reuse_pr_qualification:
+      branches:
+        - dev
+        - exp
+```
+
+A PR is docs-only only when **every** changed path in the complete base→head
+delta is below one of the configured prefixes. It then ignores branch-local
+`build.yml`, runs only the configured lightweight modules, and selects no
+library, model owners or API probes. A mixed docs/source PR follows normal
+selection. Permanent-lane promotion and release PR rules are evaluated first
+and remain stronger.
+
+When `/merge` integrates a normal temporary PR into a configured permanent
+lane, merge policy passes the exact reviewed PR head SHA and exact green
+PR-specific CI run id into the permanent workflow dispatch. The uploaded
+qualification artifact names GitHub's synthetic PR merge commit as its original
+`source_sha`; that commit must have the reviewed base/head as its two parents,
+and its Git tree must exactly equal the new permanent commit tree.
+
+On success the durable build-plan records the permanent `source_sha`, the
+synthetic `qualified_source_sha`, the reviewed `qualified_head_sha`, PR number
+and CI run id. If the binding is absent, any identity check fails, or the
+artifact is missing/expired, the workflow simply executes ordinary CAD-CI.
+
+Do not enable reuse for `main` merely to make releases faster. Stable
+qualification keeps its existing full/release-only rules unless a separately
+reviewed policy changes them.
+
+Pages is dispatched after durable publication and is intentionally
+asynchronous. Do not block compiler/IR issue completion on Pages deployment
+unless the work itself changes the public site contract.
+
 ### Merge execution
 
 The merge shape is policy-owned, not agent-selected. For every source-branch integration, post `/merge` on the pull request and let `.github/workflows/merge-policy.yml` execute the merge.

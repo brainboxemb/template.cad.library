@@ -2,6 +2,28 @@
 
 ## Now
 
+### #108 — configurable qualification policy and PR evidence reuse
+
+Move CI cost policy into the library template instead of consumer-specific
+workarounds. Root `ci.yml` may declare a docs-only pull-request policy and
+which permanent lanes may reuse an already-green PR qualification.
+
+Docs-only classification is fail-safe and lower priority than permanent-lane
+promotion/release rules. A PR is lightweight only when its complete base→head
+delta is below configured prefixes; it runs only configured lightweight
+modules, with no library/model/API-probe qualification.
+
+Permanent evidence reuse is stricter: GitHub must associate the permanent
+source commit with one merged same-repository PR targeting that lane, the
+latest PR-specific central CI run for the exact head must be green, its
+`cad-qualification` artifact must be live, and the permanent commit tree must
+exactly equal the qualified PR-head tree. Reused evidence is rebound to the
+permanent source SHA while retaining `qualified_source_sha` provenance.
+Any missing/ambiguous condition falls back to the existing normal CAD-CI run.
+
+Pages remains asynchronously dispatched after durable build publication; CAD
+compiler qualification does not wait for Pages deployment.
+
 ### #106 — explicit API-probe runs and isolated publication
 
 Keep `ci.yml` as the permanent API-probe capability/root contract and
