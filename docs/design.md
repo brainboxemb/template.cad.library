@@ -55,6 +55,26 @@ API change is actively being developed. Existing `main`, `dev` or `exp`
 may also be probed explicitly through the dedicated API Probe workflow without
 changing `build.yml`.
 
+Root `ci.yml.qualification` also owns repository-wide CI cost policy. A
+configured docs-only PR is classified from the complete base→head Git delta,
+before branch-local `build.yml` is considered, and runs only the declared
+lightweight modules with no library/model/probe qualification. Permanent-lane
+promotion and release rules take precedence and cannot be weakened by this
+classification.
+
+Configured permanent lanes may reuse the `cad-qualification` artifact from the
+merged PR instead of executing the same CAD graph twice. Reuse requires one
+same-repository merged PR targeting that lane, exact permanent-commit ↔ PR-head
+Git-tree equality, the newest PR-specific central CI run to be green, and one
+live qualification artifact whose build-plan names that exact PR head. The
+durable plan is rebound to the permanent source SHA and records
+`qualified_source_sha`, PR number and CI run id. Missing, ambiguous, stale or
+non-identical evidence falls back to normal permanent qualification. The policy
+is opt-in per permanent branch; stable `main` is not special-cased into reuse.
+
+Pages remains a separate asynchronous publication consumer of durable build
+evidence. CAD qualification completion does not depend on Pages deployment.
+
 ## API probes
 
 API probes are temporary executable evidence for library/API design work. They
