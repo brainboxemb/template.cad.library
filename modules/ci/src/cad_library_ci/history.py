@@ -192,3 +192,118 @@ def reusable_pr_qualification(
         run_id=run_id,
         artifact_id=matches[0]["id"],
     )
+
+
+
+def discover_reusable_pr_qualification(
+    *,
+    repository: str,
+    branch: str,
+    token: str,
+    source_sha: str,
+    artifact_name: str = "cad-qualification",
+) -> ReusableQualification | None:
+    """Conservatively discover reusable PR evidence when merge policy gave no binding.
+
+    GitHub may remove pull-request associations from completed Actions runs after
+    merge. The permanent commit still retains its associated merged PR. Use that
+    PR to obtain the exact reviewed base/head, then consider only the newest
+    central pull-request CI run for the same head/ref. The artifact's synthetic
+    PR merge commit is validated separately by reuse.py before evidence can be
+    accepted.
+    """
+
+    repo_value = parse.quote(repository, safe="/")
+    source_value = parse.quote(source_sha, safe="")
+    pulls = _json(
+        f"https://api.github.com/repos/{repo_value}/commits/{source_value}/pulls",
+        token,
+    )
+    if not isinstance(pulls, list):
+        return None
+
+    candidates = []
+    for pr in pulls:
+        if not isinstance(pr, dict):
+            continue
+        head = pr.get("head") or {}
+        base = pr.get("base") or {}
+        head_repo = head.get("repo") or {}
+        if (
+            pr.get("state") == "closed"
+            and pr.get("merged_at")
+            and pr.get("merge_commit_sha") == source_sha
+            and base.get("ref") == branch
+            and head_repo.get("full_name") == repository
+            and isinstance(head.get("sha"), str)
+            and head.get("sha")
+            and isinstance(head.get("ref"), str)
+            and head.get("ref")
+            and isinstance(base.get("sha"), str)
+            and base.get("sha")
+            and type(pr.get("number")) is int
+        ):
+            candidates.append(pr)
+    if len(candidates) != 1:
+        return None
+
+    pr = candidates[0]
+    head = pr["head"]
+    base = pr["base"]
+    head_sha = head["sha"]
+    head_ref = head["ref"]
+    head_value = parse.quote(head_sha, safe="")
+    runs = _json(
+        f"https://api.github.com/repos/{repo_value}/actions/runs"
+        f"?head_sha={head_value}&event=pull_request&per_page=100",
+        token,
+    ).get("workflow_runs", [])
+    ci_runs = [
+        run
+        for run in runs
+        if isinstance(run, dict)
+        and run.get("event") == "pull_request"
+        and run.get("path") == ".github/workflows/ci.yml"
+        and run.get("head_sha") == head_sha
+        and run.get("head_branch") in (None, "", head_ref)
+        and type(run.get("id")) is int
+    ]
+    if not ci_runs:
+        return None
+
+    def recency(run):
+        created = run.get("created_at")
+        if not isinstance(created, str):
+            created = ""
+        return created, run["id"]
+
+    latest = max(ci_runs, key=recency)
+    if (
+        latest.get("status") != "completed"
+        or latest.get("conclusion") != "success"
+    ):
+        return None
+
+    run_id = latest["id"]
+    artifacts = _json(
+        f"https://api.github.com/repos/{repo_value}/actions/runs/{run_id}/artifacts"
+        "?per_page=100",
+        token,
+    ).get("artifacts", [])
+    matches = [
+        artifact
+        for artifact in artifacts
+        if artifact.get("name") == artifact_name
+        and artifact.get("expired") is False
+        and type(artifact.get("id")) is int
+    ]
+    if len(matches) != 1:
+        return None
+
+    return ReusableQualification(
+        pr_number=pr["number"],
+        head_sha=head_sha,
+        base_sha=base["sha"],
+        run_id=run_id,
+        artifact_id=matches[0]["id"],
+    )
