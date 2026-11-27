@@ -25,7 +25,15 @@ def _write_output(path: Path, **values):
             handle.write(f"{key}={value}\n")
 
 
+class _NoRedirect(request.HTTPRedirectHandler):
+    """Expose GitHub's signed artifact redirect without forwarding credentials."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
 def _download_artifact(repository: str, artifact_id: int, token: str) -> bytes:
+    """Download one Actions artifact without leaking GitHub auth cross-host."""
     repo_value = parse.quote(repository, safe="/")
     req = request.Request(
         f"https://api.github.com/repos/{repo_value}/actions/artifacts/"
@@ -33,10 +41,32 @@ def _download_artifact(repository: str, artifact_id: int, token: str) -> bytes:
         headers={
             "Accept": "application/vnd.github+json",
             "Authorization": f"Bearer {token}",
+            "User-Agent": "cad-library-ci",
             "X-GitHub-Api-Version": "2022-11-28",
         },
     )
-    with request.urlopen(req) as response:
+
+    opener = request.build_opener(_NoRedirect())
+    try:
+        with opener.open(req) as response:
+            if response.status == 200:
+                return response.read()
+            location = response.headers.get("Location")
+    except error.HTTPError as exc:
+        if exc.code not in (301, 302, 303, 307, 308):
+            raise
+        location = exc.headers.get("Location")
+
+    if not isinstance(location, str) or not location.startswith("https://"):
+        raise ValueError("artifact download did not return a signed redirect")
+
+    # The signed object-storage URL already carries its own credentials.
+    # Never forward the GitHub bearer token to that different host.
+    blob_req = request.Request(
+        location,
+        headers={"User-Agent": "cad-library-ci"},
+    )
+    with request.urlopen(blob_req) as response:
         return response.read()
 
 
