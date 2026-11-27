@@ -114,17 +114,36 @@ Optional `needs` may name `cadlib` or internal module ids. The selected
 builder remains responsible for turning the source into its normal CAD
 artifacts.
 
-Probes have no per-owner `process` flag. Root `build.yml` is the activation
-boundary:
+Probes have no per-owner `process` flag. Root `ci.yml` permanently declares
+the `api-probes/` root. Root `build.yml` is only the temporary branch-local
+activation override used while developing an API:
 
 ```yaml
 api_probes: [smoke]
 ```
 
-Absent or empty means no probes. Full `main`, `dev` and `exp` selection
-also keeps probes off. Results are written to
-`build/qualification/api-probes/<id>/` and, when explicitly present in a
-publication plan, to `build/<scope>/api-probes/<id>/` beside `models/`.
+Absent or empty means no branch-local probes. Full `main`, `dev` and
+`exp` selection also keeps probes off.
+
+To run an existing probe explicitly against an existing source, use the
+`API Probe` workflow. Supply:
+
+```text
+source_ref: dev
+probes: configuration-toggle
+```
+
+`probes` accepts a comma-separated list or `all`. The workflow checks out the
+requested source, runs the same probe discovery/runtime path as branch-local CI,
+and always uploads candidate evidence. When `source_ref` is `main`, `dev` or
+`exp`, successful evidence is also published below
+`build/<scope>/api-probes/<id>/`.
+
+Probe publication is owner-incremental: selected probes are replaced, unselected
+probe evidence is preserved, and `models/` is untouched. Ordinary model builds
+also preserve API-probe evidence. Removal/reconciliation of stale probes is a
+separate explicit concern rather than a side effect of unrelated builds.
+
 Pages ignores API probe evidence.
 
 ## Model owners
