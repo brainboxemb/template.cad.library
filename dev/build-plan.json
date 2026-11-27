@@ -8,8 +8,8 @@
     ],
     "selected": []
   },
-  "full": true,
-  "library": true,
+  "full": false,
+  "library": false,
   "models": [
     {
       "id": "simple-box",
@@ -27,10 +27,13 @@
       ]
     }
   ],
+  "qualification_pr": 113,
+  "qualification_reused": true,
+  "qualification_run_id": 46007428248,
+  "qualified_head_sha": "c3eeeb59fff367b283787b803b03b03f554fef70",
+  "qualified_source_sha": "b647bbc02dfab7f14deb10d75df9ad45d689a8cd",
   "release_only": false,
   "schema": 2,
-  "selected": [
-    "simple-box"
-  ],
-  "source_sha": "fd518bac4bbcc9135374ccfa09cfc3aa60a664eb"
+  "selected": [],
+  "source_sha": "bf7c4476e1d540bdb7634b9f357c39a60113c4bd"
 }
