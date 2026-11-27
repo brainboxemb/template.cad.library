@@ -112,8 +112,8 @@ def require_green_ci(
     sha: str,
     pull_request_number: int,
     token: str,
-) -> None:
-    """Require the latest central pull-request CI for this exact head SHA.
+) -> dict:
+    """Require and return the latest central pull-request CI for this exact head SHA.
 
     GitHub can re-associate historical check-runs with a replacement PR when
     the same head commit is reused. Query pull-request workflow runs directly
@@ -151,6 +151,7 @@ def require_green_ci(
         raise MergePolicyError("central ci check is still running")
     if latest.get("conclusion") not in _ALLOWED_CI_RESULTS:
         raise MergePolicyError("central ci check is not green")
+    return latest
 
 
 def require_durable_permanent_head(
@@ -205,13 +206,26 @@ def merge_required(pr: dict) -> bool:
     return True
 
 
-def dispatch_workflow(repository: str, workflow: str, ref: str, token: str) -> None:
+def dispatch_workflow(
+    repository: str,
+    workflow: str,
+    ref: str,
+    token: str,
+    *,
+    inputs: dict | None = None,
+) -> None:
+    body = {"ref": ref}
+    if inputs:
+        body["inputs"] = {
+            str(key): str(value)
+            for key, value in inputs.items()
+        }
     api(
         repository,
         f"actions/workflows/{workflow}/dispatches",
         token,
         method="POST",
-        body={"ref": ref},
+        body=body,
     )
 
 
@@ -548,7 +562,7 @@ def run_normal(args, token: str) -> str:
             token,
         )
     head_sha = pr["head"]["sha"]
-    require_green_ci(
+    ci_run = require_green_ci(
         args.repository,
         head_sha,
         args.pull_request_number,
@@ -565,7 +579,17 @@ def run_normal(args, token: str) -> str:
     if not result.get("merged"):
         raise MergePolicyError(result.get("message", "GitHub did not merge PR"))
 
-    dispatch_workflow(args.repository, "ci.yml", base, token)
+    dispatch_workflow(
+        args.repository,
+        "ci.yml",
+        base,
+        token,
+        inputs={
+            "qualification_pr": args.pull_request_number,
+            "qualification_head_sha": head_sha,
+            "qualification_run_id": ci_run["id"],
+        },
+    )
     dispatch_workflow(args.repository, "branch-cleanup.yml", base, token)
     return result["sha"]
 
