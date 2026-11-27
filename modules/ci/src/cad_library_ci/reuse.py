@@ -12,7 +12,11 @@ from urllib import error, parse, request
 import zipfile
 
 from .config import ConfigError, load_project
-from .history import _json, reusable_pr_qualification
+from .history import (
+    _json,
+    discover_reusable_pr_qualification,
+    reusable_pr_qualification,
+)
 
 
 def _write_output(path: Path, **values):
@@ -151,25 +155,35 @@ def materialize(
     project = load_project(repo)
     if branch not in project.reuse_pr_branches:
         return {"reuse": False, "reason": "branch-not-configured"}
-    if (
-        type(pr_number) is not int
-        or type(run_id) is not int
-        or not isinstance(head_sha, str)
-        or not head_sha
-    ):
-        return {"reuse": False, "reason": "no-merge-policy-binding"}
-
-    evidence = reusable_pr_qualification(
-        repository=repository,
-        branch=branch,
-        token=token,
-        source_sha=source_sha,
-        pr_number=pr_number,
-        head_sha=head_sha,
-        run_id=run_id,
+    bound = (
+        type(pr_number) is int
+        and type(run_id) is int
+        and isinstance(head_sha, str)
+        and bool(head_sha)
     )
-    if evidence is None:
-        return {"reuse": False, "reason": "invalid-merge-policy-binding"}
+    if bound:
+        evidence = reusable_pr_qualification(
+            repository=repository,
+            branch=branch,
+            token=token,
+            source_sha=source_sha,
+            pr_number=pr_number,
+            head_sha=head_sha,
+            run_id=run_id,
+        )
+        if evidence is None:
+            return {"reuse": False, "reason": "invalid-merge-policy-binding"}
+        reuse_reason = "merge-policy-bound-green-pr"
+    else:
+        evidence = discover_reusable_pr_qualification(
+            repository=repository,
+            branch=branch,
+            token=token,
+            source_sha=source_sha,
+        )
+        if evidence is None:
+            return {"reuse": False, "reason": "no-reusable-pr-evidence"}
+        reuse_reason = "discovered-tree-identical-green-pr"
 
     shutil.rmtree(candidate, ignore_errors=True)
     data = _download_artifact(repository, evidence.artifact_id, token)
@@ -194,7 +208,7 @@ def materialize(
     )
     return {
         "reuse": True,
-        "reason": "tree-identical-green-pr",
+        "reason": reuse_reason,
         "qualified_source_sha": qualified_source_sha,
         "qualified_head_sha": evidence.head_sha,
         "pr_number": evidence.pr_number,
