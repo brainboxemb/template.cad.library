@@ -87,13 +87,13 @@ class PublishTests(unittest.TestCase):
                 "probe-sha",
             )
 
-    def test_unselected_api_probes_are_removed_from_scope(self):
+    def test_unselected_api_probes_are_preserved_by_model_publication(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             target = root / "target"
-            stale = target / "api-probes" / "old"
-            stale.mkdir(parents=True)
-            (stale / "result.json").write_text("{}")
+            existing = target / "api-probes" / "old"
+            existing.mkdir(parents=True)
+            (existing / "result.json").write_text('{"status": "pass"}')
             update_scope(
                 target,
                 root / "candidate",
@@ -108,7 +108,7 @@ class PublishTests(unittest.TestCase):
                     },
                 },
             )
-            self.assertFalse((target / "api-probes").exists())
+            self.assertTrue((target / "api-probes/old/result.json").is_file())
 
     def test_release_only_stable_candidate_preserves_full_baseline(self):
         plan = {
