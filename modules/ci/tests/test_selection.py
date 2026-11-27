@@ -2,7 +2,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from cad_library_ci.config import ConfigError, load_build
+from cad_library_ci.config import ConfigError, full_selection, load_build
 from cad_library_ci.items import PythonModule, select
 from cad_library_ci.selection import changed_selection
 
@@ -31,6 +31,9 @@ class SelectionTests(unittest.TestCase):
             )
             plan = load_build(repo, "issue/1")
             self.assertEqual(plan.api_probes, ())
+
+    def test_full_selection_keeps_api_probes_off(self):
+        self.assertEqual(full_selection("dev").api_probes, ())
 
     def test_impact(self):
         modules = (
